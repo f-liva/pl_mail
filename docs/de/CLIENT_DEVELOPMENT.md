@@ -1,4 +1,4 @@
-<!-- translated-from: CLIENT_DEVELOPMENT.md sha1:2be2712648313d78072c5e359be041661216ad07 -->
+<!-- translated-from: CLIENT_DEVELOPMENT.md sha1:51c2baaf68248498215e8240a5272d14d4450771 -->
 # Einen Client für plMail bauen
 
 Alles, was eine Entwicklerin (oder ein Agent) braucht, um einen *neuen* plMail-Client zu schreiben
@@ -674,7 +674,8 @@ val options = FirebaseOptions.Builder()
 
 Alle vier stecken im APK jeder Firebase-App und sind ihrer Natur nach öffentlich; der
 Dienstkonto-Schlüssel, der tatsächlich *senden* kann, verlässt den Server nie. Hat die Instanz
-mehrere Android-Pakete registriert, wird `de.plmail.google` veröffentlicht, sofern vorhanden,
+mehrere Android-Pakete registriert, wird `de.pluetzner.plmail` (der Build aus Google Play)
+veröffentlicht, sofern vorhanden, dann `de.plmail.google` (die GitHub-Release-Builds bis v0.4.0),
 sonst der erste registrierte Client.
 
 Für (1) kann dieses Repository auch gleich den Push-Dienst liefern, damit Selbsthostende keinen

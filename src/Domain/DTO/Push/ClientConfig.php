@@ -29,20 +29,25 @@ use App\Domain\Exception\InvalidFirebaseCredentialsException;
  * **One Android client is picked, not all of them.** A google-services.json can
  * register several packages (a debug variant, a white-label build), and the
  * Session publishes one object because a client builds one FirebaseOptions. The
- * preferred package is named below; anything else falls back to the first
+ * preferred packages are named below; anything else falls back to the first
  * registered client, so an install that renamed its package still works and an
  * install that did not gets the right one deliberately rather than by position.
  */
 final readonly class ClientConfig
 {
     /**
-     * The package the official plMail Android app is published under.
+     * The packages the official plMail Android app ships under, best first.
+     *
+     * `de.pluetzner.plmail` is the Google Play build. `de.plmail.google` is the
+     * same build as the GitHub releases up to v0.4.0 published it, before Play
+     * fixed the name for good; it stays second so a project that registered
+     * only that one keeps working for the phones that installed it.
      *
      * Preferred rather than required: a fork or a self-built APK has its own
      * package name, and refusing that file would make this feature unusable by
      * exactly the people most likely to be self-hosting.
      */
-    public const string PREFERRED_PACKAGE = 'de.plmail.google';
+    public const array PREFERRED_PACKAGES = ['de.pluetzner.plmail', 'de.plmail.google'];
 
     public function __construct(
         public string $projectId,
@@ -133,8 +138,8 @@ final readonly class ClientConfig
     }
 
     /**
-     * The registered Android client to publish, preferring the official package
-     * and otherwise taking the first.
+     * The registered Android client to publish, preferring the official packages
+     * in their order and otherwise taking the first.
      *
      * Deliberately not "the only one": multi-client files are ordinary, and a
      * file that registers a debug variant beside the release one would
@@ -146,7 +151,8 @@ final readonly class ClientConfig
      */
     private static function pickAndroidClient(array $clients): array
     {
-        $first = null;
+        $first     = null;
+        $preferred = [];
 
         foreach ($clients as $client) {
             if (false === is_array($client)) {
@@ -156,10 +162,17 @@ final readonly class ClientConfig
             $first ??= $client;
 
             $package = $client['client_info']['android_client_info']['package_name'] ?? null;
+            $rank    = array_search($package, self::PREFERRED_PACKAGES, true);
 
-            if (self::PREFERRED_PACKAGE === $package) {
-                return $client;
+            // Ranked rather than returned on the first hit: a file that lists
+            // the old package above the Play one must still publish the Play one.
+            if (false !== $rank) {
+                $preferred[$rank] ??= $client;
             }
+        }
+
+        if ([] !== $preferred) {
+            return $preferred[min(array_keys($preferred))];
         }
 
         if (null === $first) {

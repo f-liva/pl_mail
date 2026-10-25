@@ -380,10 +380,12 @@ Two files, and neither is any use alone:
   Generate new private key. This is how the server sends. It is stored encrypted with everything
   else this install holds, and never shown again.
 - **`google-services.json`**, from Project settings → Your apps → the Android app. This is how the
-  *app* initialises Firebase. The plMail Android app is one build published to every installation
-  while every installation has its own Firebase project, so it cannot be compiled in — the values
-  are published in the JMAP session instead and the app builds its `FirebaseOptions` at runtime.
-  They ship inside every Firebase APK and are public by nature, so they are stored in clear.
+  *app* initialises Firebase. When you add the Android app to the Firebase project, give it the
+  package name **`de.pluetzner.plmail`**, the one the app has on Google Play. The plMail Android app
+  is one build published to every installation while every installation has its own Firebase
+  project, so it cannot be compiled in — the values are published in the JMAP session instead and
+  the app builds its `FirebaseOptions` at runtime. They ship inside every Firebase APK and are
+  public by nature, so they are stored in clear.
 
 **A pair from two different projects is refused, saying which is which.** Nothing downstream can
 detect that mistake: the app registers happily against one project, the server sends happily to the

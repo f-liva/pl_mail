@@ -614,7 +614,9 @@ val options = FirebaseOptions.Builder()
 
 All four ship inside every Firebase app's APK and are public by nature; the service-account key that
 can actually *send* never leaves the server. If the instance registered several Android packages,
-the one published is `de.plmail.google` where present and the first registered client otherwise.
+the one published is `de.pluetzner.plmail` (the Google Play build) where present, then
+`de.plmail.google` (the GitHub release builds up to v0.4.0), and the first registered client
+otherwise.
 
 For (1) this repository can supply the push service too, so a self-hoster does not have to find one:
 

@@ -1,4 +1,4 @@
-<!-- translated-from: features/admin.md sha1:4865212012d4cf6a29e0240502f77ebd35946462 -->
+<!-- translated-from: features/admin.md sha1:75c49bdead0b5505de1b31107842cf3e9f18b6fe -->
 
 # Administration
 
@@ -421,11 +421,13 @@ Zwei Dateien, und keine ist allein zu gebrauchen:
   privaten Schlüssel erzeugen. So sendet der Server. Er wird verschlüsselt gespeichert wie alles
   andere, was diese Installation vorhält, und nie wieder angezeigt.
 - **`google-services.json`**, aus Projekteinstellungen → Deine Apps → die Android-App. Damit
-  initialisiert die *App* Firebase. Die plMail-Android-App ist ein Build, der an jede Installation
-  ausgeliefert wird, während jede Installation ihr eigenes Firebase-Projekt hat — sie lässt sich
-  also nicht einkompilieren. Die Werte werden stattdessen in der JMAP-Session veröffentlicht, und
-  die App baut ihre `FirebaseOptions` zur Laufzeit. Sie stecken im APK jeder Firebase-App und sind
-  ihrer Natur nach öffentlich, werden also im Klartext gespeichert.
+  initialisiert die *App* Firebase. Wenn du die Android-App im Firebase-Projekt anlegst, gib ihr den
+  Paketnamen **`de.pluetzner.plmail`**, den die App bei Google Play trägt. Die plMail-Android-App
+  ist ein Build, der an jede Installation ausgeliefert wird, während jede Installation ihr eigenes
+  Firebase-Projekt hat — sie lässt sich also nicht einkompilieren. Die Werte werden stattdessen in
+  der JMAP-Session veröffentlicht, und die App baut ihre `FirebaseOptions` zur Laufzeit. Sie stecken
+  im APK jeder Firebase-App und sind ihrer Natur nach öffentlich, werden also im Klartext
+  gespeichert.
 
 **Ein Paar aus zwei verschiedenen Projekten wird abgelehnt, unter Nennung beider.** Nichts weiter
 unten kann diesen Fehler erkennen: Die App registriert sich fröhlich gegen das eine Projekt, der
