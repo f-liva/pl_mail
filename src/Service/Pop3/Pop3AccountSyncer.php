@@ -9,6 +9,7 @@ use App\Domain\Enum\Mail\LabelRole;
 use App\Domain\Enum\Mail\MailboxSpecialUse;
 use App\Domain\Helper\ImapConnectionFactory;
 use App\Domain\Helper\MessageIdHelper;
+use App\Domain\Helper\MessageParser;
 use App\Domain\Interface\AccountSyncerInterface;
 use App\Entity\Mail\Account;
 use App\Entity\Mail\Mailbox;
@@ -294,7 +295,7 @@ final readonly class Pop3AccountSyncer implements AccountSyncerInterface
 
             try {
                 $message = $this->messageSyncer->buildMessageFromParsed(
-                    ImapMessage::fromString($raw, ImapConnectionFactory::config()),
+                    MessageParser::fromString($raw, ImapConnectionFactory::config()),
                     $mailbox,
                     $accountId,
                 );
@@ -416,9 +417,19 @@ final readonly class Pop3AccountSyncer implements AccountSyncerInterface
         }
 
         $messageId   = self::messageIdOf($head);
-        $fingerprint = '' === $messageId
-            ? $this->messageSyncer->fingerprintOf(ImapMessage::fromString($head, ImapConnectionFactory::config()))
-            : null;
+        $fingerprint = null;
+
+        if ('' === $messageId) {
+            try {
+                $fingerprint = $this->messageSyncer->fingerprintOf(MessageParser::fromString($head, ImapConnectionFactory::config()));
+            } catch (Throwable) {
+                // A header not even the repair makes readable cannot be
+                // recognised, and is fetched like any message that cannot be.
+                // Letting it out would end the sync, and with the adoption pass
+                // unable to finish, every sync after it (#357).
+                return null;
+            }
+        }
 
         $held = $this->messageRepository->findAdoptable($account, $messageId, $fingerprint, notInPop3Ledger: true);
 
