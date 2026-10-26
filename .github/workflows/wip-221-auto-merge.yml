@@ -1,0 +1,35 @@
+name: Auto-merge into wip/221
+
+# The phases of #221 are built by phdelodder as pull requests into
+# wip/221-folders-and-labels, and each one merges by itself once its required
+# checks are green (the branch's ruleset lists them). The review happens once,
+# on the pull request that takes the whole branch into the milestone.
+#
+# This file lives on the wip branch only, because pull_request_target runs the
+# workflow of the base branch. DELETE IT before that last pull request, so it
+# never reaches the milestone or main.
+#
+# pull_request_target rather than pull_request, because the pull requests
+# come from a fork, whose token cannot merge anything. Safe ONLY because nothing
+# below checks out or runs the pull request's code. Do not add a checkout.
+
+on:
+    pull_request_target:
+        types: [opened, reopened, ready_for_review]
+        branches: ['wip/221-folders-and-labels']
+
+permissions:
+    contents: write
+    pull-requests: write
+
+jobs:
+    enable-auto-merge:
+        if: github.event.pull_request.user.login == 'phdelodder' && !github.event.pull_request.draft
+        runs-on: ubuntu-latest
+        steps:
+            - name: Turn on auto-merge
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  REPO: ${{ github.repository }}
+                  NUMBER: ${{ github.event.pull_request.number }}
+              run: gh pr merge "$NUMBER" --repo "$REPO" --auto --squash
