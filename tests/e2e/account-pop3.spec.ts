@@ -37,10 +37,30 @@ async function chooseProtocol(page: Page, name: "IMAP" | "POP3"): Promise<void> 
     await page.locator("#modal").getByRole("radiogroup").getByText(name, { exact: true }).click();
 }
 
-/** The delete mode is a TomSelect-enhanced select: picked as a person picks it. */
+/**
+ * The delete mode is a TomSelect-enhanced select, picked as a person picks it.
+ *
+ * By the combobox's accessible name rather than support/select.ts's
+ * getByLabel: this field is required, so its label reads "After fetching *"
+ * and an exact label match finds nothing. And the open is retried rather than
+ * clicked once: when the widget already has focus its panel is open, and a
+ * click closes it again — the option click then waited out the test.
+ */
 async function chooseDeleteMode(page: Page, option: string): Promise<void> {
-    await page.locator(`${DELETE_MODE} + .ts-wrapper`).click();
-    await page.locator(".ts-dropdown .option", { hasText: option }).click();
+    const control = page.locator("#modal").getByRole("combobox", { name: "After fetching", exact: true });
+
+    await expect(async () => {
+        if ((await control.getAttribute("aria-expanded")) !== "true") {
+            await control.click();
+        }
+
+        await expect(control).toHaveAttribute("aria-expanded", "true", { timeout: 1000 });
+    }).toPass({ timeout: 10_000 });
+
+    const listbox = await control.getAttribute("aria-controls");
+
+    await page.locator(`[id="${listbox}"]`).getByRole("option", { name: option, exact: true }).click();
+    await expect(control).toHaveText(option);
 }
 
 async function removeAccount(page: Page, label: string): Promise<void> {
