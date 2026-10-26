@@ -140,13 +140,75 @@ final class ClassificationCatchUpTest extends KernelTestCase
         self::assertFalse($this->catchUp()->mayRun());
     }
 
+    /**
+     * The limit from Admin → AI (#208): a year-old mailbox is left to the rules,
+     * and last week's mail is still sorted.
+     */
+    public function testMailOlderThanTheLimitIsNotQueued(): void
+    {
+        $this->mail(3);
+        $new = $this->mailReceived('-2 days');
+        $this->importFinished();
+        $this->assistantSorts(backlogDays: 30);
+
+        self::assertSame(1, $this->catchUp()->sweep($this->user, 100));
+        self::assertSame([$new], $this->queuedIds());
+    }
+
+    /**
+     * Once everything inside the limit is done, a run finds nothing — rather
+     * than walking on into the history and queueing envelopes the handler would
+     * only throw away.
+     */
+    public function testARunWithNothingInsideTheLimitQueuesNothing(): void
+    {
+        $this->mail(3);
+        $this->importFinished();
+        $this->assistantSorts(backlogDays: 30);
+
+        self::assertSame(0, $this->catchUp()->sweep($this->user, 100));
+        self::assertSame([], $this->backlog()->getSent());
+    }
+
+    /**
+     * The on-demand way past the limit, `app:ai:classify-backlog --any-age`:
+     * the old mail is queued, and each envelope says so, because the handler
+     * checks the limit again when it takes the envelope off the queue.
+     */
+    public function testAskingForAnyAgeQueuesTheOldMailAndFlagsIt(): void
+    {
+        $ids = $this->mail(3);
+        $this->importFinished();
+        $this->assistantSorts(backlogDays: 30);
+
+        self::assertSame(3, $this->catchUp()->sweep($this->user, 100, anyAge: true));
+        self::assertSame(array_reverse($ids), $this->queuedIds(anyAge: true));
+    }
+
+    /**
+     * The query reads a message's age the way the handler does — receivedAt,
+     * else sentAt, and neither is not too old — or the two would disagree
+     * about a message and the catch-up would queue what the handler drops.
+     */
+    public function testTheLimitFallsBackToTheSentDateAndKeepsUndatedMail(): void
+    {
+        $recentlySent = $this->mailReceived(null, sent: '-2 days');
+        $this->mailReceived(null, sent: '-90 days');
+        $undated = $this->mailReceived(null);
+        $this->importFinished();
+        $this->assistantSorts(backlogDays: 30);
+
+        self::assertSame(2, $this->catchUp()->sweep($this->user, 100));
+        self::assertEqualsCanonicalizing([$recentlySent, $undated], $this->queuedIds());
+    }
+
     private function catchUp(): ClassificationCatchUp
     {
         return self::getContainer()->get(ClassificationCatchUp::class);
     }
 
     /** @return list<int> */
-    private function queuedIds(): array
+    private function queuedIds(bool $anyAge = false): array
     {
         $ids = [];
 
@@ -155,6 +217,7 @@ final class ClassificationCatchUpTest extends KernelTestCase
 
             self::assertInstanceOf(ClassifyMailMessage::class, $message);
             self::assertFalse($message->force);
+            self::assertSame($anyAge, $message->anyAge);
 
             $ids = [...$ids, ...$message->messageIds];
         }
@@ -183,7 +246,12 @@ final class ClassificationCatchUpTest extends KernelTestCase
         return $transport;
     }
 
-    private function assistantSorts(bool $enabled = true): void
+    /**
+     * With no age limit unless a test sets one. The fixture mail is a year old
+     * and most of these tests are about order and bounds, not about age; the
+     * ones about age say so.
+     */
+    private function assistantSorts(bool $enabled = true, int $backlogDays = 0): void
     {
         $settings = $this->em->getRepository(AiSettings::class)->findOneBy([]) ?? new AiSettings();
 
@@ -191,6 +259,7 @@ final class ClassificationCatchUpTest extends KernelTestCase
         $settings->baseUrl               = 'http://model-host.invalid:11434';
         $settings->chatModel             = 'qwen3:4b-instruct';
         $settings->categorisationEnabled = $enabled;
+        $settings->categoriseBacklogDays = $backlogDays;
 
         $this->em->persist($settings);
         $this->em->flush();
@@ -230,6 +299,24 @@ final class ClassificationCatchUpTest extends KernelTestCase
         }
 
         return $ids;
+    }
+
+    private function mailReceived(?string $received, ?string $sent = null): int
+    {
+        $message = new Message();
+        $message->account = $this->mailbox->account;
+        $message->mailbox = $this->mailbox;
+        $message->subject = 'Recent fixture';
+        $message->fromAddress = 'somebody@elsewhere.test';
+        $message->receivedAt = null === $received ? null : new DateTimeImmutable($received);
+        $message->sentAt = null === $sent ? null : new DateTimeImmutable($sent);
+        $message->hasAttachments = false;
+        $message->messageId = sprintf('<recent-%s@example.test>', uniqid('', true));
+
+        $this->em->persist($message);
+        $this->em->flush();
+
+        return (int) $message->id;
     }
 
     private function seed(): void

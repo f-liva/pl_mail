@@ -64,6 +64,20 @@ for each of Unread, Starred, Sent, Drafts, Snoozed, Archive, Spam and Trash: tic
 **More**, the rest stay in the sidebar. Nothing moves until you change it.
 [#151](https://github.com/karatektus/pl_mail/issues/151), by @Flouss.
 
+**Adding a large mailbox no longer means days of sorting by the assistant.** With **Sort mail into
+tabs** on, plMail asked the model about every old message after an import — 14,000 messages at
+twenty seconds each on a CPU model is about 70 hours of that host. Admin → AI now has
+**Sort imported mail up to (days old)**, 30 by default: an import and the background pass after it
+stop there, and so does older mail that was already waiting in the queue. Mail that has just arrived
+is always sorted, whatever its date. Older mail keeps the tab the ordinary rules gave it (**Primary**
+when no rule recognised it) and is found by search as before. `0` sorts everything again, and
+`php bin/console app:ai:classify-backlog --any-age --limit=N` sorts the older mail when you choose.
+[#208](https://github.com/karatektus/pl_mail/issues/208), by @phdelodder.
+
+**Migration:** adds `ai_settings.categorise_backlog_days`, 30 on the existing row. Installations that
+already sort by assistant stop asking about mail older than 30 days at the first background pass
+after the update; set it to `0` for the old behaviour.
+
 **Settings save without reloading the page.** Changing a switch or choice in Settings updates it in
 place, and you stay where you were scrolled. Only the language and the clock format still reload,
 because they change everything on the page.

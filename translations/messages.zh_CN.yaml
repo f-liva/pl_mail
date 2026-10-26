@@ -163,6 +163,8 @@ admin:
             hold_help: 适合让助手为邮件分类的用户。在助手处理所需的短暂时间内，新邮件不会出现在收件箱标签页中，处理完后会直接显示在正确的标签页，避免先出现再移动。首次导入的邮件不会延迟显示。
             hold_max_seconds: 最长等待时间（秒）
             hold_max_seconds_help: '超过此时间后，无论助手是否完成，邮件都会先按常规规则显示；若助手稍后回复，则再移动邮件。范围为 2 至 300。'
+            categorise_backlog_days: 导入邮件的整理范围（天数）
+            categorise_backlog_days_help: '添加账户或补整理其历史邮件时，助手往回整理多少天内的邮件。更早的邮件保留常规规则给出的标签页（没有规则识别时为“主要”），并且仍可搜索。新邮件无论日期如何都会被整理。0 表示整理全部；`app:ai:classify-backlog --any-age` 可按需整理更早的邮件。'
             search_query_instruction: 查询指令
             search_query_instruction_help: 在搜索文字转换为向量前添加的前缀指令。多数模型需要此指令，缺少时效果较差；不需要的模型请留空。此项仅影响搜索，更改后无需重新为邮件建立索引。
             semantic_min_similarity: 最低相似度
