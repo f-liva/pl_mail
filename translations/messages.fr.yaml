@@ -2748,6 +2748,7 @@ message:
         more: Plus
         print: Imprimer
         report_insight: Signaler un aperçu manqué
+        filter_from_message: 'Créer un filtre à partir de ce message'
         show_original: Afficher l’original
         star: Suivre
         unstar: Ne plus suivre

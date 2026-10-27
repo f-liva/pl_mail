@@ -1,4 +1,4 @@
-<!-- translated-from: features/filters.md sha1:fe29a19405a3b0bbde0cf5664d86183a406f116e -->
+<!-- translated-from: features/filters.md sha1:70956cf89b5867febb2b3cffc8aa8a4c307cff08 -->
 
 # Filter
 
@@ -17,6 +17,14 @@ Liste in einem eigenen Rahmen, damit du beim Bauen deine Stelle nicht verlierst.
 Die Kontoauswahl steht standardmäßig auf **Alle Konten**. Einen Filter auf ein Konto zu
 beschränken ist der übliche Wunsch, und es wiegt schwerer, als es aussieht — siehe unten den
 Fallstrick über Regeln ohne Bedingungen.
+
+### Von einer Nachricht aus
+
+**Filter aus dieser Nachricht erstellen** im **⋮**-Menü einer Nachricht öffnet den Editor mit dem
+Absender dieser Nachricht: **Von ist genau** mit seiner Adresse, und sein Name als Name des
+Filters. Eine Aktion gibt es noch nicht; was der Filter tut, wählst du, und die Live-Zählung sagt
+vor dem Speichern, wie viel Mail er schon trifft. Für die ganze Domain stellst du die Bedingung auf
+**Absender-Domain ist** um.
 
 ## Bedingungen
 

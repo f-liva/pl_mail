@@ -2613,6 +2613,7 @@ message:
         more: More
         print: Print
         report_insight: "Report what the spyglass missed"
+        filter_from_message: 'Rig a sorting order from this yarn'
         show_original: Show the original scroll
         star: Mark with an X
         unstar: Rub out the X

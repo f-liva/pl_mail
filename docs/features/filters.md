@@ -14,6 +14,14 @@ lose your place.
 The account selector defaults to **All accounts**. Scoping a filter to one account is the usual
 thing to want, and it matters more than it looks — see the trap about conditionless rules below.
 
+### Starting from a message
+
+**Create a filter from this message**, in a message's **⋮** menu, opens the editor with that
+message's sender already in it: **From is exactly** its address, and its name as the filter's name.
+There is no action yet; you pick what the filter does, and the live count says how much mail it
+already catches before you save. To catch the whole domain instead, change the condition to
+**Sender's domain is**.
+
 ## Conditions
 
 Conditions are a tree. Every group states whether **All**, **Any** or **None** of the following

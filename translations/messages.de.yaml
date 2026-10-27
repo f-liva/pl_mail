@@ -2735,6 +2735,7 @@ message:
         more: Mehr
         print: Drucken
         report_insight: Fehlendes Insight melden
+        filter_from_message: 'Filter aus dieser Nachricht erstellen'
         show_original: Original anzeigen
         star: Markieren
         unstar: Markierung entfernen
