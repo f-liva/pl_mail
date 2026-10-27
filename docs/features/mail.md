@@ -967,6 +967,12 @@ Autocomplete only ever offers **your own** harvested contacts. On an install wit
 person, nobody's correspondents are visible to anybody else, and an address belonging to another
 account cannot be put on your draft by any route.
 
+A list of addresses pasted into **To**, **Cc** or **Bcc** becomes one recipient per address,
+whether it is separated by semicolons, commas, new lines or spaces, and with or without names
+(`jo@jo.fr; Ann <ann@example.org>`, `jo@jo.fr jo2@jo.fr`). A space inside a name does not split
+it. An address already on the field is not added twice, and a
+piece that is not an address stays in the box, reported, for you to correct.
+
 **Attach files** takes files from your machine, capped at **25 MB per file**. **Attach from a
 service** opens the file picker for any connected service plMail can download from.
 

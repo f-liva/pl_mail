@@ -109,6 +109,31 @@ test.describe("compose recipients", () => {
     });
 
     /**
+     * A list copied out of another client is several recipients, not one
+     * search string: `;` from Outlook, `Name <address>,` from Gmail, or just
+     * spaces. What is not an address stays in the box and is reported.
+     */
+    test("a pasted list becomes one chip per address", async ({ page }) => {
+        await openCompose(page);
+
+        await page.locator(DOCK).getByRole("button", { name: /^Cc$/ }).click();
+
+        const cc = page.locator(`${DOCK} .ts-control`).nth(1);
+        const input = cc.locator("input");
+
+        await input.focus();
+        await input.evaluate((node, text) => {
+            const data = new DataTransfer();
+            data.setData("text/plain", text);
+            node.dispatchEvent(new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true }));
+        }, `${KNOWN}; "Doe, Jane" <${OTHER}> recipients-third@example.test, not-an-address; ${KNOWN}`);
+
+        await expect(cc.locator(".item")).toHaveCount(3);
+        await expect(input).toHaveValue("not-an-address");
+        await expect(page.locator(`${DOCK} [data-compose--compose-target="errors"]`)).toContainText("not-an-address");
+    });
+
+    /**
      * Autocomplete over the contact book — which is the point of it, and the
      * reason a draft is saved first: contacts are learned, not seeded.
      */
