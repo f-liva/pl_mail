@@ -486,6 +486,11 @@ export default class extends Controller {
         // refresh for a field nobody is in any more has nobody to show it to.
         input?.addEventListener('blur', () => this._cancelPanelRefresh(select));
 
+        // A chip with a typo in it used to mean deleting it and typing the
+        // whole address again. A double click puts it back in the box, in its
+        // place in the list, to be corrected and committed with Enter.
+        select.control.addEventListener('dblclick', (event) => this._editChip(event, select));
+
         input?.addEventListener('paste', (event) => this._pasteAddresses(event, select));
 
         select.on('item_add', () => {
@@ -526,6 +531,102 @@ export default class extends Controller {
 
         window.clearTimeout(select.refreshTimeout);
         select.refreshTimeout = null;
+    }
+
+    /**
+     * The address a chip stands for.
+     *
+     * A typed or pasted chip's value IS its address, but a suggested contact's
+     * value is the contact's id, with `Name <address>` as its text — so the
+     * address is read from the text, and falls back to the value.
+     */
+    _chipAddress(select, value) {
+        const text  = String(select.options[value]?.text ?? value);
+        const match = text.match(/<([^<>]+)>\s*$/);
+
+        return (null !== match ? match[1] : text).trim();
+    }
+
+    /**
+     * Turn a double-clicked chip back into text in the box.
+     *
+     * The bare address, not `Name <address>`: Enter commits what createFilter
+     * accepts, and a name in front of the address is not that. A known
+     * contact typed back in is suggested again as soon as the box is edited.
+     *
+     * The corrected address goes back where the chip was, not at the end: the
+     * first To recipient is who a template's greeting is addressed to, and
+     * fixing a typo in it must not hand the greeting to somebody else.
+     * Tom Select's own setCaret() cannot do this — without its caret_position
+     * plugin it always answers "the end" — so the list is re-ordered once the
+     * next chip arrives, and only that one.
+     *
+     * Leaving the box without pressing Enter puts the chip back, corrected or
+     * not. Tom Select empties the box on blur, so a double click and a click
+     * elsewhere used to make the recipient vanish.
+     */
+    _editChip(event, select) {
+        const chip = event.target.closest('.item');
+
+        if (null === chip || false === select.control.contains(chip)) {
+            return;
+        }
+
+        const value = chip.dataset.value;
+        const index = select.items.indexOf(value);
+
+        if (undefined === value || -1 === index) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const address = this._chipAddress(select, value);
+
+        select.removeItem(value);
+
+        const forget  = () => {
+            select.off('item_add', restore);
+            select.control_input.removeEventListener('blur', later);
+        };
+        const later   = () => {
+            const pending = (select.plmailTyped ?? '').trim();
+
+            if (pending === address && undefined !== select.options[value]) {
+                select.addItem(value);
+            } else if (true === this.constructor.ADDRESS.test(pending)) {
+                select.createItem(pending, false);
+            }
+
+            window.setTimeout(forget, 0);
+        };
+        // Moved in place rather than through setValue(): that clears and
+        // re-adds, and with `persist: false` clearing deletes every option
+        // that was typed rather than suggested — the whole list but the known
+        // contacts went with it.
+        const restore = (added) => {
+            forget();
+
+            const from = select.items.indexOf(added);
+            const to   = Math.min(index, select.items.length - 1);
+
+            if (-1 === from || from === to) {
+                return;
+            }
+
+            select.items.splice(from, 1);
+            select.items.splice(to, 0, added);
+            select.getItem(select.items[to + 1])?.before(select.getItem(added));
+            select.updateOriginalInput();
+        };
+
+        select.on('item_add', restore);
+        select.control_input.addEventListener('blur', later);
+
+        select.setTextboxValue(address);
+        select.plmailTyped = address;
+        select.focus();
+        select.control_input.select();
     }
 
     /**
