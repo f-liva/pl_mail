@@ -1,4 +1,4 @@
-<!-- translated-from: features/mail.md sha1:8b0e5e1a681e20813721baccadf3579d414d2f34 -->
+<!-- translated-from: features/mail.md sha1:6b1364608797d05e4618beebce343408505418a1 -->
 
 # Mail
 
@@ -1070,6 +1070,11 @@ setzen.
 **Doppelklicke einen Empfänger**, um ihn zu korrigieren: Die Adresse kommt zurück ins Feld, Enter
 setzt die korrigierte an die Stelle der alten. Verlässt du das Feld ohne Enter, kommt sie
 unverändert zurück.
+
+**Empfänger kopieren**: Wähle ihre Chips aus (ein Klick, Umschalt+Klick oder Strg+A in einem leeren
+Feld) und drücke Strg+C. Sie landen als `Name <Adresse>; Adresse` in der Zwischenablage, was andere
+Mailprogramme lesen. Strg+X tut dasselbe und entfernt sie, so wandert eine Liste mit Ausschneiden
+und Einfügen von An nach Bcc.
 
 Eine Liste von Adressen, die du in **An**, **Cc** oder **Bcc** einfügst, wird zu einem Empfänger
 je Adresse, ob durch Semikolon, Komma, Zeilenumbruch oder Leerzeichen getrennt, mit oder ohne

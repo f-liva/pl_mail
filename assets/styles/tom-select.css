@@ -328,6 +328,14 @@
     opacity: 1;
 }
 
+/* A chip selected by a click, Shift+click or Ctrl+A — what Ctrl+C copies and
+ * Backspace removes. Tom Select marks it `.active` and this sheet drew nothing
+ * for it, so a selection was invisible and so was the fact that one existed. */
+.ts-wrapper.multi .ts-control .item.active {
+    background-color: rgb(var(--rgb-accent));
+    color: rgb(var(--rgb-accent-ink));
+}
+
 /* ── Dropdown panel ──────────────────────────────────────────────────── */
 .ts-dropdown {
     position: absolute;

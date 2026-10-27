@@ -319,6 +319,49 @@ export default class extends Controller {
     }
 
     /**
+     * Put the selected chips on the clipboard as `Name <address>; address`.
+     *
+     * Tom Select lets chips be selected and does nothing with Ctrl+C, so the
+     * browser copied the empty text box: there was no way to take a list of
+     * recipients from one message to another. Semicolons because Outlook
+     * reads nothing else, and a name holding a separator is quoted so it does
+     * not come back as two recipients. Cut removes them too, which is how a
+     * list moves from To to Bcc from the keyboard.
+     *
+     * Text typed in the box is the browser's to copy, as everywhere else.
+     */
+    _copyChips(event, select, cut) {
+        if ('' !== select.control_input.value || 0 === (select.activeItems ?? []).length) {
+            return;
+        }
+
+        const chosen = select.activeItems.map((chip) => chip.dataset.value);
+        const values = select.items.filter((value) => chosen.includes(value));
+
+        const text = values.map((value) => {
+            const label = String(select.options[value]?.text ?? value).trim();
+            const match = label.match(/^(.*?)\s*<([^<>]+)>$/);
+
+            if (null === match || '' === match[1].trim()) {
+                return null !== match ? match[2] : label;
+            }
+
+            const name = match[1].trim().replace(/^"(.*)"$/, '$1');
+
+            return /[,;"<>@]/.test(name)
+                ? `"${name.replace(/"/g, '')}" <${match[2]}>`
+                : `${name} <${match[2]}>`;
+        }).join('; ');
+
+        event.clipboardData.setData('text/plain', text);
+        event.preventDefault();
+
+        if (true === cut) {
+            values.forEach((value) => select.removeItem(value));
+        }
+    }
+
+    /**
      * How a recipient is drawn: a suggestion as avatar, name and address, a
      * chip as the name alone, with the address on hover.
      *
@@ -513,6 +556,11 @@ export default class extends Controller {
             // simply finds nothing new to fill.
             this._fillTemplateVariables();
         });
+
+        // Chips selected with a click, Shift+click or Ctrl+A copy as the list
+        // another mail client — or this one's paste — reads back.
+        input?.addEventListener('copy', (event) => this._copyChips(event, select, false));
+        input?.addEventListener('cut', (event) => this._copyChips(event, select, true));
 
         this._reserveRoomForPanel(select, input);
     }

@@ -970,6 +970,10 @@ account cannot be put on your draft by any route.
 **Double-click a recipient** to correct it: the address goes back into the field, Enter puts the
 fixed one where the old one was. Leaving the field without pressing Enter puts it back as it is.
 
+**Copy recipients** by selecting their chips (a click, Shift+click, or Ctrl+A in an empty field)
+and pressing Ctrl+C: they go to the clipboard as `Name <address>; address`, which other mail clients
+read. Ctrl+X does the same and removes them, so a list moves from To to Bcc with a cut and a paste.
+
 A list of addresses pasted into **To**, **Cc** or **Bcc** becomes one recipient per address,
 whether it is separated by semicolons, commas, new lines or spaces, and with or without names
 (`jo@jo.fr; Ann <ann@example.org>`, `jo@jo.fr jo2@jo.fr`). A space inside a name does not split
