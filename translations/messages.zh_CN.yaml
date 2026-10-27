@@ -10,6 +10,12 @@ account:
         imap:
             heading: '收件 — IMAP'
             host: 主机
+        jmap:
+            heading: '收件 — JMAP'
+            session_url: '会话 URL'
+            session_url_help: '留空则使用上面的地址。只有当服务器的 JMAP 会话不在 /.well-known/jmap 时才需要填写。'
+            token_auth: '密码是 API 令牌'
+            token_auth_help: '如果服务器（例如 Fastmail）提供的是令牌而不是应用专用密码，请勾选此项。此时不会发送用户名。'
         password: 密码
         pop3:
             delete_help: '留在服务器上的邮件会在下次同步时按 UIDL 识别，不会重复收取。从服务器删除可以释放空间，但之后只剩 plMail 中的这一份。'
@@ -24,6 +30,7 @@ account:
         protocol:
             help: '以后更改也会保留已有邮件：下次同步会识别已经存在的邮件。'
             imap: IMAP
+            jmap: 'JMAP'
             label: '收件协议'
             pop3: POP3
         smtp:
@@ -56,9 +63,13 @@ account:
             failed: 连接失败，请检查主机、端口及加密方式。
             host_invalid: '请仅输入主机名或 IP 地址，不要包含斜杠、问号或 @。'
             imap_ok: '已连接，可见 %count% 个文件夹。'
+            jmap_no_mail: '服务器支持 JMAP，但没有为此账户提供邮件。'
+            jmap_ok: '已连接，可见 %count% 个邮箱。'
+            jmap_submission: '通过 JMAP 服务器发送。'
             missing_fields: '请先至少输入电子邮件地址和 IMAP 主机。'
             missing_password: 没有可用于测试的密码。请在上方输入密码；编辑表单中留空会保留已保存的密码，但需先保存账户，测试才能使用该密码。
             pop3_ok: '已连接，邮箱中有 %count% 封邮件。'
+            private_network: '该服务器位于私有网络中。必须先由管理员在 INTEGRATIONS_ALLOWED_HOSTS 中允许其主机，plMail 才能连接。'
             smtp_none: '未配置 SMTP 主机，此账户无法发送邮件。'
             smtp_ok: 已连接并登录。
             timeout: 服务器未及时响应，请检查主机、端口以及是否受到防火墙阻拦。

@@ -531,6 +531,18 @@ class Account extends AccountModel
      */
     public const string SETTING_POP3_ADOPTING = 'sync.pop3.adopting';
 
+    /**
+     * Where a JMAP account's session resource is, when it is not at the
+     * well-known path on the incoming host. See $jmapSessionUrl.
+     */
+    public const string SETTING_JMAP_SESSION_URL = 'sync.jmap.session_url';
+
+    /** Whether a JMAP account's password is a bearer token. See $jmapTokenAuth. */
+    public const string SETTING_JMAP_TOKEN_AUTH = 'sync.jmap.token_auth';
+
+    /** A JMAP account's sync states, by data type. See jmapState(). */
+    public const string SETTING_JMAP_STATES = 'sync.jmap.states';
+
     /** Unfetched messages the listing under way has found so far. */
     public const string SETTING_BACKFILL_PENDING = 'sync.backfill_pending';
 
@@ -761,7 +773,22 @@ class Account extends AccountModel
     {
         return false === $this->isGmail()
             && false === $this->isMicrosoft()
-            && false === $this->isPop3();
+            && false === $this->isPop3()
+            && false === $this->isJmap();
+    }
+
+    /**
+     * Whether this account's mail is read over JMAP.
+     *
+     * Shaped like isPop3(): a question about the protocol column, answerable
+     * without opening anything. Excluded from isPlainImap() for the reason POP3
+     * is — every caller of that predicate goes on to open an IMAP connection —
+     * and from the Gmail and Microsoft answers by construction, since a JMAP
+     * account signs in with a password or a token and never with OAuth.
+     */
+    public function isJmap(): bool
+    {
+        return $this->incomingProtocol->isJmap();
     }
 
     /**
@@ -1054,6 +1081,85 @@ class Account extends AccountModel
         set(bool $on) {
             $this->setSetting(self::SETTING_POP3_ADOPTING, $on ? true : null);
         }
+    }
+
+    /**
+     * The JMAP session URL, when the server does not answer at
+     * https://{imapHost}/.well-known/jmap.
+     *
+     * In the settings bag rather than a column: it is null for nearly every
+     * account, since RFC 8620 §2.2 has servers publish the well-known path and
+     * Stalwart, Fastmail and Cyrus all do. It exists for the server behind a
+     * reverse proxy that only forwards /jmap, which is the one setup where the
+     * host is right and the path is not.
+     */
+    public ?string $jmapSessionUrl {
+        get {
+            $url = $this->getSetting(self::SETTING_JMAP_SESSION_URL);
+
+            return true === is_string($url) && '' !== trim($url) ? trim($url) : null;
+        }
+        set (?string $url) {
+            $url = null === $url ? null : trim($url);
+
+            $this->setSetting(self::SETTING_JMAP_SESSION_URL, '' === $url ? null : $url);
+        }
+    }
+
+    /**
+     * Whether the JMAP password is sent as `Authorization: Bearer`.
+     *
+     * Off means HTTP Basic with the username, which is what Stalwart's app
+     * passwords are for. On is Fastmail's shape: an API token that is the
+     * whole credential, with no username in it. Stored in the same encrypted
+     * password column either way, because it is the same secret and the
+     * column already keeps it the way a secret should be kept.
+     */
+    public bool $jmapTokenAuth {
+        get => true === $this->getSetting(self::SETTING_JMAP_TOKEN_AUTH, false);
+        set(bool $on) {
+            $this->setSetting(self::SETTING_JMAP_TOKEN_AUTH, $on ? true : null);
+        }
+    }
+
+    /**
+     * The state string this account last synced a JMAP data type to.
+     *
+     * One map, keyed by type name (`Mailbox`, `Email`, `CalendarEvent`, …),
+     * because they are one concept: RFC 8620's state is per type, every
+     * `/changes` call starts from one, and push announces new ones by type
+     * name. Per-calendar and per-address-book states do not live here — those
+     * belong on the Calendar and AddressBook rows, as every other provider's
+     * sync tokens do.
+     *
+     * Stays a method: it takes the type name.
+     */
+    public function jmapState(string $type): ?string
+    {
+        $states = $this->getSetting(self::SETTING_JMAP_STATES);
+        $state  = true === is_array($states) ? ($states[$type] ?? null) : null;
+
+        return true === is_string($state) && '' !== $state ? $state : null;
+    }
+
+    /**
+     * Record the state a JMAP data type has been synced to, or forget it.
+     *
+     * Null forgets it, which is what a resync does: the next pass reads the
+     * whole collection instead of asking for changes.
+     */
+    public function rememberJmapState(string $type, ?string $state): static
+    {
+        $states = $this->getSetting(self::SETTING_JMAP_STATES);
+        $states = true === is_array($states) ? $states : [];
+
+        if (null === $state || '' === $state) {
+            unset($states[$type]);
+        } else {
+            $states[$type] = $state;
+        }
+
+        return $this->setSetting(self::SETTING_JMAP_STATES, [] === $states ? null : $states);
     }
 
     /** Whether a Microsoft account has folders whose history is still to be read. */
