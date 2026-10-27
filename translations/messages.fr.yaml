@@ -2806,6 +2806,24 @@ message:
         signer: Signé par %signer%
         smime_unreadable: Ce message est chiffré avec S/MIME pour un certificat que plMail n’a pas. Importez-le dans Paramètres → Chiffrement, ou ouvrez le message dans un logiciel de messagerie qui le possède.
         smime_unsupported: Ce message est chiffré avec un algorithme que plMail ne sait pas ouvrir ; seul AES est pris en charge.
+    filter_check:
+        button: 'Tester mes filtres sur ce message'
+        hide: 'Masquer le test des filtres'
+        sender: 'Expéditeur vérifié par le serveur de réception :'
+        verdict:
+            pass: 'oui'
+            fail: 'non — il indique que le message ne vient pas du domaine annoncé'
+            unknown: 'inconnu — aucun verdict auquel plMail puisse se fier'
+        none: 'Aucun filtre n’est activé pour ce compte.'
+        state:
+            matches: 'correspond'
+            no_match: 'ne correspond pas'
+            stopped: 'pas atteint : « %rule% » arrête après lui'
+            broken: 'ses conditions sont illisibles ; il est ignoré'
+        filing:
+            Filed: 'le classerait dans %category%'
+            SenderNotVerified: 'ne le classerait pas dans %category% : l’expéditeur n’est pas vérifié'
+            NoCategory: 'rien où classer : l’onglet n’existe plus'
     details:
         categorised:
             ai: 'un modèle de langage, faute de règle l’ayant reconnu : '

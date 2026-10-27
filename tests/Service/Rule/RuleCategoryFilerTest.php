@@ -177,6 +177,24 @@ final class RuleCategoryFilerTest extends TestCase
         self::assertSame($receipts, $message->thread?->userCategory);
     }
 
+    /**
+     * check() is "Test my filters on this message": the same answer file()
+     * would give, and nothing touched — a test that filed the message would
+     * be the action it claims only to describe.
+     */
+    public function testCheckAnswersAsFileWouldAndFilesNothing(): void
+    {
+        $verified   = $this->message(self::PASS);
+        $unverified = $this->message(self::FAIL);
+
+        self::assertSame(CategoryFiling::Filed, $this->file($verified, check: true));
+        self::assertSame(CategoryFiling::SenderNotVerified, $this->file($unverified, check: true));
+        self::assertSame(CategoryFiling::NoCategory, $this->file($verified, category: null, check: true));
+
+        self::assertNull($verified->ruleCategory, 'check() filed the message');
+        self::assertNull($verified->thread?->userCategory);
+    }
+
     // ── fixture ──────────────────────────────────────────────────────────────
 
     /**
@@ -185,7 +203,7 @@ final class RuleCategoryFilerTest extends TestCase
      *                                           nothing, as after a deletion
      * @param array<string,mixed>|null $action
      */
-    private function file(Message $message, InboxCategory|false|null $category = false, ?array $action = null): CategoryFiling
+    private function file(Message $message, InboxCategory|false|null $category = false, ?array $action = null, bool $check = false): CategoryFiling
     {
         $repository = $this->createStub(InboxCategoryRepository::class);
         $repository->method('find')->willReturn(false === $category ? $this->shipping : $category);
@@ -201,7 +219,9 @@ final class RuleCategoryFilerTest extends TestCase
         $rule->usr   = $this->owner;
         $rule->name  = 'Carriers';
 
-        return $filer->file($rule, $message, $action ?? ['type' => 'fileInCategory', 'categoryId' => 5]);
+        $action ??= ['type' => 'fileInCategory', 'categoryId' => 5];
+
+        return true === $check ? $filer->check($rule, $message, $action) : $filer->file($rule, $message, $action);
     }
 
     private function message(?string $authenticationResults, string $receivedAt = '2026-07-28 12:00:00'): Message

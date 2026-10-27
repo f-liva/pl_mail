@@ -2793,6 +2793,24 @@ message:
         signer: "Signiert von %signer%"
         smime_unreadable: "Diese Nachricht ist mit S/MIME für ein Zertifikat verschlüsselt, das plMail nicht hat. Importiere es unter Einstellungen → Verschlüsselung oder öffne die Nachricht in einem Mailprogramm, das es hat."
         smime_unsupported: "Diese Nachricht ist mit einem Verfahren verschlüsselt, das plMail nicht öffnen kann; unterstützt wird nur AES."
+    filter_check:
+        button: 'Meine Filter an dieser Nachricht testen'
+        hide: 'Filtertest ausblenden'
+        sender: 'Absender vom empfangenden Server bestätigt:'
+        verdict:
+            pass: 'ja'
+            fail: 'nein — er sagt, die Nachricht stammt nicht von der angegebenen Domain'
+            unknown: 'unbekannt — kein Urteil, dem plMail trauen kann'
+        none: 'Für dieses Konto ist kein Filter eingeschaltet.'
+        state:
+            matches: 'trifft zu'
+            no_match: 'trifft nicht zu'
+            stopped: 'nicht erreicht: „%rule%“ hört nach sich auf'
+            broken: 'seine Bedingungen sind nicht lesbar; er wird übersprungen'
+        filing:
+            Filed: 'würde sie in %category% ablegen'
+            SenderNotVerified: 'würde sie nicht in %category% ablegen: Der Absender ist nicht bestätigt'
+            NoCategory: 'nichts zum Ablegen: Der Tab existiert nicht mehr'
     details:
         categorised:
             ai: 'ein Sprachmodell, weil keine Regel gegriffen hat: '

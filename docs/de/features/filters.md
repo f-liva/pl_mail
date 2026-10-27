@@ -1,4 +1,4 @@
-<!-- translated-from: features/filters.md sha1:70956cf89b5867febb2b3cffc8aa8a4c307cff08 -->
+<!-- translated-from: features/filters.md sha1:e9cbf7836c6aab7cb10799942963f77109f3eaa9 -->
 
 # Filter
 
@@ -164,6 +164,20 @@ Zeile sähe ein Lauf, der nichts abgelegt hat, wie erledigt aus.
 Ein bereits laufender Filter verweigert einen zweiten Start: Mitten im Lauf erneut zu starten
 würde den Fortschritt doppelt zählen und mit den Schreibvorgängen des Handlers ins Rennen
 gehen.
+
+## Deine Filter an einer Nachricht testen
+
+**Meine Filter an dieser Nachricht testen**, unten im **Details**-Panel einer Nachricht, listet jeden
+Filter, der für das Konto dieser Nachricht eingeschaltet ist, in der Reihenfolge, in der sie laufen,
+und sagt von jedem, ob er **zutrifft** — und bei denen, die zutreffen, was sie tun würden. Getan wird
+nichts: kein Label, kein Tab, kein Verschieben.
+
+Hier schaust du nach, wenn ein Filter „angewendet“ wurde und nichts passiert ist. **In Kategorie
+ablegen** sagt, ob es die Nachricht ablegen würde, und wenn nicht, warum: Die Zeile über der Liste
+sagt, ob der empfangende Server den Absender bestätigt hat, und genau das braucht diese Aktion (siehe
+unten). Ein Filter nach einem mit **Nach diesem Filter aufhören** erscheint als nicht erreicht, und
+einer, dessen Bedingungen sich nicht mehr lesen lassen, als übersprungen — so, wie eintreffende Mail
+sie behandeln würde.
 
 ## In eigene Tabs ablegen
 

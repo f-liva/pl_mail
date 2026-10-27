@@ -2789,6 +2789,24 @@ message:
         signer: "Signed by %signer%"
         smime_unreadable: "This message is encrypted with S/MIME for a certificate plMail does not have. Import it in Settings → Encryption, or open the message in a mail program that holds it."
         smime_unsupported: "This message is encrypted with a cipher plMail cannot open; only AES is supported."
+    filter_check:
+        button: 'Test my filters on this message'
+        hide: 'Hide the filter test'
+        sender: 'Sender verified by the receiving server:'
+        verdict:
+            pass: 'yes'
+            fail: 'no — it says the message does not come from the domain it claims'
+            unknown: 'unknown — no verdict plMail can trust'
+        none: 'No filter is switched on for this account.'
+        state:
+            matches: 'matches'
+            no_match: 'does not match'
+            stopped: 'not reached: "%rule%" stops after itself'
+            broken: 'its conditions cannot be read; it is skipped'
+        filing:
+            Filed: 'would file it in %category%'
+            SenderNotVerified: 'would not file it in %category%: the sender is not verified'
+            NoCategory: 'nothing to file in: the tab is gone'
     details:
         categorised:
             ai: 'a language model, because no rule recognised it: '

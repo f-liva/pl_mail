@@ -146,6 +146,19 @@ would read as done.
 A filter already running refuses to start again: re-running mid-flight would double-count progress
 and race the handler's writes.
 
+## Testing your filters on a message
+
+**Test my filters on this message**, at the bottom of a message's **Details** panel, lists every
+filter switched on for that message's account, in the order they run, and says of each whether it
+**matches** — and, for those that do, what they would do. Nothing is done: no label, no tab, no
+move.
+
+It is the place to look when a filter "applied" and nothing happened. **File in category** says
+whether it would file the message, and if not, why: the line above the list says whether the
+receiving server verified the sender, which is what that action needs (see below). A filter after
+one with **Stop after this filter** is shown as not reached, and one whose conditions can no longer
+be read as skipped, as arriving mail would treat them.
+
 ## Filing into your own tabs
 
 A filter can put mail into an inbox tab of your own. Make the tab first, at the bottom of the

@@ -2472,6 +2472,24 @@ message:
         signer: "签名者：%signer%"
         smime_unreadable: "此邮件使用 S/MIME 加密，但 plMail 没有对应证书。请在“设置 → 加密”中导入证书，或使用持有该证书的邮件客户端打开。"
         smime_unsupported: "此邮件使用了 plMail 无法解密的算法，目前仅支持 AES。"
+    filter_check:
+        button: '用此邮件测试我的过滤器'
+        hide: '隐藏过滤器测试'
+        sender: '收件服务器是否验证了发件人：'
+        verdict:
+            pass: '是'
+            fail: '否 — 服务器认为邮件并非来自其声称的域名'
+            unknown: '未知 — 没有 plMail 可以信任的验证结果'
+        none: '此账户没有启用任何过滤器。'
+        state:
+            matches: '匹配'
+            no_match: '不匹配'
+            stopped: '未执行：“%rule%”匹配后停止'
+            broken: '其条件无法读取，已跳过'
+        filing:
+            Filed: '会将其归入 %category%'
+            SenderNotVerified: '不会将其归入 %category%：发件人未经验证'
+            NoCategory: '无处归档：该标签页已不存在'
     details:
         categorised:
             ai: '由语言模型判断，因为没有规则识别出它： '

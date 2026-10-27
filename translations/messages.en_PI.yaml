@@ -2671,6 +2671,24 @@ message:
         signer: "Signed by %signer%"
         smime_unreadable: "This letter be S/MIME-sealed fer a certificate plMail don't hold. Bring it aboard in Settings → Encryption, or open th' letter in a mail program that holds it."
         smime_unsupported: "This letter be sealed with a cipher plMail can't open; only AES serves."
+    filter_check:
+        button: 'Try me sortin'' orders on this yarn'
+        hide: 'Stow the sortin'' trial'
+        sender: 'Sender vouched for by the harbour:'
+        verdict:
+            pass: 'aye'
+            fail: 'nay — the harbour says it sailed under false colours'
+            unknown: 'none can say — no word plMail can trust'
+        none: 'No sortin'' order be hoisted for this ship.'
+        state:
+            matches: 'catches it'
+            no_match: 'lets it pass'
+            stopped: 'never reached: "%rule%" drops anchor after itself'
+            broken: 'its orders be unreadable; it be skipped'
+        filing:
+            Filed: 'would stow it in %category%'
+            SenderNotVerified: 'would not stow it in %category%: the sender be unvouched'
+            NoCategory: 'nowhere to stow it: the hold be gone'
     details:
         categorised:
             ai: "an oracle, for no rule knew it: "

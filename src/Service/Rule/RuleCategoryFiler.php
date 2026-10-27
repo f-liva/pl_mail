@@ -6,6 +6,7 @@ namespace App\Service\Rule;
 
 use App\Domain\Enum\Mail\CategoryFiling;
 use App\Domain\Enum\Mail\SenderVerdict;
+use App\Entity\Mail\InboxCategory;
 use App\Entity\Mail\Message;
 use App\Entity\Rule\MailRule;
 use App\Repository\Mail\InboxCategoryRepository;
@@ -76,29 +77,10 @@ final readonly class RuleCategoryFiler
      */
     public function file(MailRule $rule, Message $message, array $action): CategoryFiling
     {
-        $categoryId = $action['categoryId'] ?? null;
+        [$outcome, $category] = $this->decide($rule, $message, $action, log: true);
 
-        if (false === is_int($categoryId)) {
-            return CategoryFiling::NoCategory;
-        }
-
-        $category = $this->categories->find($categoryId);
-
-        // Re-checked at run time, not trusted from the stored action: whatever
-        // is in the json, a rule must never reach a category its owner does not
-        // own, and a deleted one is simply nothing to file under. The same
-        // discipline as labels and integrations in RuleActionExecutor.
-        if (null === $category || null === $rule->usr || $category->usr !== $rule->usr) {
-            $this->logger->warning('RuleCategoryFiler: category not found for rule owner', [
-                'ruleId'     => $rule->id,
-                'categoryId' => $categoryId,
-            ]);
-
-            return CategoryFiling::NoCategory;
-        }
-
-        if (SenderVerdict::Pass !== $this->authentication->verdict($message)) {
-            return CategoryFiling::SenderNotVerified;
+        if (CategoryFiling::Filed !== $outcome || null === $category) {
+            return $outcome;
         }
 
         $message->ruleCategory = $category;
@@ -112,5 +94,54 @@ final readonly class RuleCategoryFiler
         }
 
         return CategoryFiling::Filed;
+    }
+
+    /**
+     * What file() would answer, without filing anything — for "Test my
+     * filters on this message", which has to say why a tab stayed empty
+     * using the same reasons the filing itself uses.
+     *
+     * @param array<string,mixed> $action
+     */
+    public function check(MailRule $rule, Message $message, array $action): CategoryFiling
+    {
+        return $this->decide($rule, $message, $action, log: false)[0];
+    }
+
+    /**
+     * @param array<string,mixed> $action
+     *
+     * @return array{0: CategoryFiling, 1: ?InboxCategory}
+     */
+    private function decide(MailRule $rule, Message $message, array $action, bool $log): array
+    {
+        $categoryId = $action['categoryId'] ?? null;
+
+        if (false === is_int($categoryId)) {
+            return [CategoryFiling::NoCategory, null];
+        }
+
+        $category = $this->categories->find($categoryId);
+
+        // Re-checked at run time, not trusted from the stored action: whatever
+        // is in the json, a rule must never reach a category its owner does not
+        // own, and a deleted one is simply nothing to file under. The same
+        // discipline as labels and integrations in RuleActionExecutor.
+        if (null === $category || null === $rule->usr || $category->usr !== $rule->usr) {
+            if (true === $log) {
+                $this->logger->warning('RuleCategoryFiler: category not found for rule owner', [
+                    'ruleId'     => $rule->id,
+                    'categoryId' => $categoryId,
+                ]);
+            }
+
+            return [CategoryFiling::NoCategory, null];
+        }
+
+        if (SenderVerdict::Pass !== $this->authentication->verdict($message)) {
+            return [CategoryFiling::SenderNotVerified, $category];
+        }
+
+        return [CategoryFiling::Filed, $category];
     }
 }
