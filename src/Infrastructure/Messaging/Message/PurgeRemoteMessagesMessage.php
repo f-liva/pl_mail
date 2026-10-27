@@ -39,17 +39,21 @@ final class PurgeRemoteMessagesMessage
      * @param array<string, list<int>> $imapUids folder path => UIDs in it
      * @param list<string>             $gmailIds
      * @param list<string>             $graphIds
+     * @param list<string>             $jmapIds  JMAP Email ids. Read with `??`:
+     *                                           a job queued before JMAP existed
+     *                                           comes off the queue without one
      */
     public function __construct(
         public int   $accountId,
         public array $imapUids = [],
         public array $gmailIds = [],
         public array $graphIds = [],
+        public array $jmapIds = [],
     ) {
     }
 
     public function isEmpty(): bool
     {
-        return [] === $this->imapUids && [] === $this->gmailIds && [] === $this->graphIds;
+        return [] === $this->imapUids && [] === $this->gmailIds && [] === $this->graphIds && [] === ($this->jmapIds ?? []);
     }
 }

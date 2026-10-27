@@ -213,6 +213,7 @@ final class FakeJmapServer
             'Email/changes'   => [$this->changes('Email', $name, $arguments)],
             'Email/query'     => [$this->query($arguments)],
             'Email/set'       => [[$name, $this->setEmails($arguments)]],
+            'Mailbox/set'     => [[$name, $this->setMailboxes($arguments)]],
             default           => [['error', ['type' => 'unknownMethod']]],
         };
     }
@@ -384,6 +385,69 @@ final class FakeJmapServer
             'updated'    => [] === $updated ? null : $updated,
             'destroyed'  => $destroyed,
             'notUpdated' => [] === $notUpdated ? null : $notUpdated,
+        ];
+    }
+
+    /**
+     * Mailbox/set create, update and destroy — what label structure sends.
+     *
+     * Destroy refuses a mailbox that still holds an Email, as RFC 8621 has a
+     * server do when onDestroyRemoveEmails is false, and a sibling may not
+     * share a name.
+     *
+     * @param array<string, mixed> $arguments
+     *
+     * @return array<string, mixed>
+     */
+    private function setMailboxes(array $arguments): array
+    {
+        $created = $notCreated = $updated = $notDestroyed = [];
+        $destroyed = [];
+
+        foreach ($arguments['create'] ?? [] as $key => $mailbox) {
+            foreach ($this->mailboxes as $existing) {
+                if ($existing['parentId'] === ($mailbox['parentId'] ?? null) && 0 === strcasecmp($existing['name'], (string) $mailbox['name'])) {
+                    $notCreated[$key] = ['type' => 'invalidProperties', 'properties' => ['name']];
+
+                    continue 2;
+                }
+            }
+
+            $id = 'mb-' . (++$this->sequence);
+            $this->addMailbox($id, (string) $mailbox['name'], $mailbox['parentId'] ?? null, $mailbox['role'] ?? null);
+            $created[$key] = ['id' => $id];
+        }
+
+        foreach ($arguments['update'] ?? [] as $id => $patch) {
+            foreach ($patch as $property => $value) {
+                $this->mailboxes[$id][$property] = $value;
+            }
+
+            $this->changed('Mailbox', 'updated', (string) $id);
+            $updated[$id] = null;
+        }
+
+        foreach ($arguments['destroy'] ?? [] as $id) {
+            foreach ($this->emails as $email) {
+                if (true === isset($email['mailboxIds'][$id])) {
+                    $notDestroyed[$id] = ['type' => 'mailboxHasEmail'];
+
+                    continue 2;
+                }
+            }
+
+            $this->removeMailbox((string) $id);
+            $destroyed[] = $id;
+        }
+
+        return [
+            'accountId'    => self::ACCOUNT,
+            'newState'     => (string) $this->states['Mailbox'],
+            'created'      => [] === $created ? null : $created,
+            'notCreated'   => [] === $notCreated ? null : $notCreated,
+            'updated'      => [] === $updated ? null : $updated,
+            'destroyed'    => $destroyed,
+            'notDestroyed' => [] === $notDestroyed ? null : $notDestroyed,
         ];
     }
 

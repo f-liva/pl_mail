@@ -1235,13 +1235,15 @@ class Account extends AccountModel
     }
 
     /**
-     * Only Gmail and Microsoft can mirror label structure. On plain IMAP a
-     * label is a physical folder, so create/delete would move real mail —
-     * a different and riskier operation than this toggle promises.
+     * Only Gmail, Microsoft and JMAP can mirror label structure. On plain
+     * IMAP a label is a physical folder, so create/delete would move real
+     * mail — a different and riskier operation than this toggle promises. A
+     * JMAP mailbox is a label in the Gmail sense: a message in it stays in
+     * every other one, and destroying it is refused while it holds mail.
      */
     public function supportsLabelSync(): bool
     {
-        return true === $this->isGmail() || true === $this->isMicrosoft();
+        return true === $this->isGmail() || true === $this->isMicrosoft() || true === $this->isJmap();
     }
 
     public function addAlias(EmailAlias $alias): static
