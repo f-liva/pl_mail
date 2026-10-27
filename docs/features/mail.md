@@ -982,6 +982,12 @@ Closing the window, popping it out, or attaching a file all force a save first. 
 threshold, leaving the page interrupts rather than losing what you typed. The trash button in the
 compose window genuinely deletes the draft rather than closing the window on top of it.
 
+**Send** asks first, in the window, when the message has no subject, no text, a template blank
+still open, or **mentions an attachment that is not there**: "attached", "ci-joint", "pièce
+jointe", "Anbei", "附件" and their kin in the subject or in what you wrote, with no file attached.
+The quoted original is not read, so a reply to a mail that had an attachment does not ask. All the
+reasons come as one question, and **Send anyway** sends.
+
 On a phone the toolbar wraps rather than scrolling out of reach, and the send pill moves up into the
 window's header, where the old button used to be.
 

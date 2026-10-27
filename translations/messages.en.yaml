@@ -1826,6 +1826,7 @@ compose:
         send_anyway: Send it anyway?
         plain_text: Switching to plain text removes all formatting from this message. Continue?
         open_variables: 'A template placeholder has not been filled in.'
+        no_attachment: 'The message mentions an attachment, but nothing is attached.'
     # Every label inside the emoji picker. The component ships its own English
     # strings and takes a replacement object; this is that object, so the
     # picker is as translated as the window around it.

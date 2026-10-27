@@ -1847,6 +1847,7 @@ compose:
         send_anyway: Trotzdem senden?
         plain_text: Der Wechsel zu Nur-Text entfernt jede Formatierung aus dieser Nachricht. Fortfahren?
         open_variables: 'Ein Platzhalter aus einer Vorlage ist noch nicht ausgefüllt.'
+        no_attachment: 'Die Nachricht erwähnt einen Anhang, aber es ist keine Datei angehängt.'
     emoji:
         activities: Aktivitäten
         animals_nature: Tiere und Natur

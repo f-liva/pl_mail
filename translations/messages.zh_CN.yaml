@@ -1587,6 +1587,7 @@ compose:
         send_anyway: 仍要发送吗？
         plain_text: 切换到纯文本会移除此邮件中的所有格式。是否继续？
         open_variables: 有模板占位符尚未填写。
+        no_attachment: 邮件提到了附件，但没有添加任何文件。
     emoji:
         activities: 活动
         animals_nature: 动物与自然

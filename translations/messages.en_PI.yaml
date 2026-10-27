@@ -1732,6 +1732,7 @@ compose:
         send_anyway: Cast it off regardless?
         plain_text: "Strikin' to plain text scrubs every flourish from this scroll. Carry on?"
         open_variables: 'A blank in yer form letter be still unfilled.'
+        no_attachment: 'Ye speak o'' cargo in the hold, but the hold be empty.'
     emoji:
         activities: Sport and mischief
         animals_nature: Beasts and the wilds

@@ -1836,6 +1836,7 @@ compose:
         send_anyway: L’envoyer quand même ?
         plain_text: Passer en texte brut supprime toute la mise en forme de ce message. Continuer ?
         open_variables: 'Un champ du modèle n’a pas été rempli.'
+        no_attachment: 'Le message parle d’une pièce jointe, mais aucun fichier n’est joint.'
     # Every label inside the emoji picker. The component ships its own English
     # strings and takes a replacement object; this is that object, so the
     # picker is as translated as the window around it.

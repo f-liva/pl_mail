@@ -2734,16 +2734,59 @@ export default class extends Controller {
         return subject + this._typedLength();
     }
 
+    /**
+     * Words that say a file comes with the message, in the languages plMail
+     * speaks. Matched against what the user wrote, not against the interface
+     * language: a German interface writing to a French client still writes
+     * "ci-joint". Whole words only, so "attachement" or "Anhänger" do not
+     * count — except the Chinese ones, which have no spaces around them to be
+     * whole words by. A quote is never read: a reply to a mail that had an
+     * attachment would otherwise ask every time.
+     */
+    static ATTACHMENT_WORDS = /(?<![\p{L}\p{N}])(?:attached|attaching|attachments?|enclosed|ci-jointe?s?|pi[eè]ces? jointes?|en pj|pj|anbei|anhang|angeh[aä]ngt|im anhang)(?![\p{L}\p{N}])|附件|附上/iu;
+
+    /**
+     * Does what the user wrote promise a file the window does not carry?
+     *
+     * Asked only at Send, alongside the empty subject and body, and with the
+     * same "Send it anyway?" way out: a false alarm costs one click, a missed
+     * attachment costs a second mail saying "sorry, here it is". Inline images
+     * do not count as attachments — they are in the body, and "see the
+     * attached file" is not about them.
+     */
+    _mentionsMissingAttachment() {
+        const attached = true === this.hasAttachmentsTarget
+            ? this.attachmentsTarget.querySelectorAll('[data-compose-part]').length
+            : 0;
+
+        if (attached > 0) {
+            return false;
+        }
+
+        const subject = this.hasSubjectTarget ? this.subjectTarget.value : '';
+
+        return this.constructor.ATTACHMENT_WORDS.test(`${subject}\n${this._typedText()}`);
+    }
+
     /** Characters the user has actually written, quote excluded. */
     _typedLength() {
+        return this._typedText().length;
+    }
+
+    /**
+     * What the user has actually written, quote excluded — the text both the
+     * emptiness check and the forgotten-attachment check read, so the two
+     * cannot disagree about what "the message" is.
+     */
+    _typedText() {
         // Plain-text mode: the textarea IS the body, and none of the markup
         // this method strips below can exist in it.
         if (true === this._isPlainText()) {
-            return this.plainBodyTarget.value.trim().length;
+            return this.plainBodyTarget.value.trim();
         }
 
         if (false === this.hasBodyTarget) {
-            return 0;
+            return '';
         }
 
         const clone = this.bodyTarget.cloneNode(true);
@@ -2774,7 +2817,7 @@ export default class extends Controller {
             }
         });
 
-        return clone.textContent.trim().length;
+        return clone.textContent.trim();
     }
 
     /**
@@ -2956,6 +2999,10 @@ export default class extends Controller {
 
         if (true === this._hasOpenTemplateVariables()) {
             missing.push(this._t('confirmOpenVariables', 'A template placeholder has not been filled in.'));
+        }
+
+        if (true === this._mentionsMissingAttachment()) {
+            missing.push(this._t('confirmNoAttachment', 'The message mentions an attachment, but nothing is attached.'));
         }
 
         if (0 === missing.length) {
