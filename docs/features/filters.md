@@ -134,10 +134,10 @@ and race the handler's writes.
 
 ## Filing into your own tabs
 
-A filter can put mail into an inbox tab of your own. Make the tab first, under **Settings → General
-→ Your own tabs**; then add a filter whose action is **File in category** and pick it. Any
-condition works. For "everything from my parcel carriers" it is **Sender's domain is**, one row per
-carrier, inside an **Any** group:
+A filter can put mail into an inbox tab of your own. Make the tab first, at the bottom of the
+**Tabs** card under **Settings → Categories**; then add a filter whose action is **File in
+category** and pick it. Any condition works. For "everything from my parcel carriers" it is
+**Sender's domain is**, one row per carrier, inside an **Any** group:
 
 ```
 All of the following
