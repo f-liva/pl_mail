@@ -1,4 +1,4 @@
-<!-- translated-from: features/filters.md sha1:5af5a1f466eed92122e38d9de0baa21cdc3b995e -->
+<!-- translated-from: features/filters.md sha1:fe29a19405a3b0bbde0cf5664d86183a406f116e -->
 
 # Filter
 
@@ -146,6 +146,12 @@ liest sich also **Wird angewendet… bisher 1.400** und liest sich auch nach ein
 einem anderen Gerät oder nachdem du den Tab geschlossen hast, weiterhin so. Sie endet als **Auf
 N Nachrichten angewendet** oder als **Lauf vorzeitig gestoppt — N Nachrichten waren erledigt**,
 wenn etwas schiefging.
+
+N zählt die Nachrichten, auf die der Filter **zutrifft**. Bei einem Filter, der in einen eigenen
+Tab ablegt, sagt eine zweite Zeile, wie viele davon er nicht ablegen konnte, weil der empfangende
+Server ihren Absender nicht bestätigt hat (siehe [In eigene Tabs ablegen](#in-eigene-tabs-ablegen)):
+**12 nicht im Tab abgelegt: Der empfangende Server hat den Absender nicht bestätigt**. Ohne diese
+Zeile sähe ein Lauf, der nichts abgelegt hat, wie erledigt aus.
 
 Ein bereits laufender Filter verweigert einen zweiten Start: Mitten im Lauf erneut zu starten
 würde den Fortschritt doppelt zählen und mit den Schreibvorgängen des Handlers ins Rennen

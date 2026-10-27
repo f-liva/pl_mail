@@ -3732,6 +3732,7 @@ settings:
             failed: 'Run stopped partway — %count% messages were done'
             queued: 'Queued…'
             running: 'Applying… %count% so far'
+        run_unfiled: '%count% not filed in the tab: the receiving server did not verify the sender|%count% not filed in the tab: the receiving server did not verify the sender'
         run_confirm: 'Apply "%name%" to mail you already have? This can move and relabel a lot of messages at once.'
         saved: Filter saved.
         spam_rule_name: 'Spam: %sender%'

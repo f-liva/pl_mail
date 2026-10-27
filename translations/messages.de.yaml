@@ -3727,6 +3727,7 @@ settings:
             failed: 'Lauf vorzeitig gestoppt — %count% Nachrichten waren erledigt'
             queued: 'In der Warteschlange…'
             running: 'Wird angewendet… bisher %count%'
+        run_unfiled: '%count% nicht im Tab abgelegt: Der empfangende Server hat den Absender nicht bestätigt|%count% nicht im Tab abgelegt: Der empfangende Server hat den Absender nicht bestätigt'
         run_confirm: '"%name%" auf vorhandene Mail anwenden? Das kann viele Nachrichten auf einmal verschieben und neu beschriften.'
         saved: Filter gespeichert.
         spam_rule_name: 'Spam: %sender%'

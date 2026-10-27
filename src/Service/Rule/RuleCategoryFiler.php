@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Rule;
 
+use App\Domain\Enum\Mail\CategoryFiling;
 use App\Domain\Enum\Mail\SenderVerdict;
 use App\Entity\Mail\Message;
 use App\Entity\Rule\MailRule;
@@ -72,15 +73,13 @@ final readonly class RuleCategoryFiler
 
     /**
      * @param array<string,mixed> $action the stored {type, categoryId} entry
-     *
-     * @return bool whether the message was filed
      */
-    public function file(MailRule $rule, Message $message, array $action): bool
+    public function file(MailRule $rule, Message $message, array $action): CategoryFiling
     {
         $categoryId = $action['categoryId'] ?? null;
 
         if (false === is_int($categoryId)) {
-            return false;
+            return CategoryFiling::NoCategory;
         }
 
         $category = $this->categories->find($categoryId);
@@ -95,11 +94,11 @@ final readonly class RuleCategoryFiler
                 'categoryId' => $categoryId,
             ]);
 
-            return false;
+            return CategoryFiling::NoCategory;
         }
 
         if (SenderVerdict::Pass !== $this->authentication->verdict($message)) {
-            return false;
+            return CategoryFiling::SenderNotVerified;
         }
 
         $message->ruleCategory = $category;
@@ -112,6 +111,6 @@ final readonly class RuleCategoryFiler
             $this->threader->refreshCategory($message, $thread);
         }
 
-        return true;
+        return CategoryFiling::Filed;
     }
 }

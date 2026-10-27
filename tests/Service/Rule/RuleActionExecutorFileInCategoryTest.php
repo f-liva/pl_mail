@@ -67,7 +67,7 @@ final class RuleActionExecutorFileInCategoryTest extends TestCase
 
         $message = $this->message($owner);
 
-        $this->executor($category)->execute($rule, $message);
+        self::assertFalse($this->executor($category)->execute($rule, $message), 'a filed message was reported as unfiled');
 
         self::assertSame($category, $message->ruleCategory);
         self::assertSame($category, $message->thread?->userCategory);
@@ -84,10 +84,36 @@ final class RuleActionExecutorFileInCategoryTest extends TestCase
 
         $message = $this->message($owner);
 
-        $this->executor(null)->execute($rule, $message);
+        self::assertFalse(
+            $this->executor(null)->execute($rule, $message),
+            'a deleted tab is the filter\'s problem, not the sender\'s — it must not be counted as unverified',
+        );
 
         self::assertNull($message->ruleCategory);
         self::assertNull($message->thread?->userCategory);
+    }
+
+    /**
+     * "Apply to existing mail" counts these. A run that matched 81 messages
+     * and filed none of them used to read "Applied to 81 messages" and leave
+     * an empty — so invisible — tab, with nothing to say why.
+     */
+    public function testAnUnverifiedSenderIsReportedBackToTheCaller(): void
+    {
+        $owner          = new User();
+        $category       = new InboxCategory();
+        $category->usr  = $owner;
+        $category->name = 'Shipping';
+
+        $rule          = new MailRule();
+        $rule->usr     = $owner;
+        $rule->actions = [['type' => 'fileInCategory', 'categoryId' => 3]];
+
+        $message          = $this->message($owner);
+        $message->headers = [];
+
+        self::assertTrue($this->executor($category)->execute($rule, $message));
+        self::assertNull($message->ruleCategory);
     }
 
     // ── fixture ──────────────────────────────────────────────────────────────

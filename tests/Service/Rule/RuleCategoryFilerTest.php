@@ -6,6 +6,7 @@ namespace App\Tests\Service\Rule;
 
 use App\Domain\Enum\Account\AuthType;
 use App\Domain\Enum\Account\MailProvider;
+use App\Domain\Enum\Mail\CategoryFiling;
 use App\Domain\Enum\Mail\MessageCategory;
 use App\Entity\Mail\Account;
 use App\Entity\Mail\InboxCategory;
@@ -60,7 +61,7 @@ final class RuleCategoryFilerTest extends TestCase
     {
         $message = $this->message(self::PASS);
 
-        self::assertTrue($this->file($message));
+        self::assertSame(CategoryFiling::Filed, $this->file($message));
 
         self::assertSame($this->shipping, $message->ruleCategory);
         self::assertSame($this->shipping, $message->thread?->userCategory);
@@ -75,7 +76,7 @@ final class RuleCategoryFilerTest extends TestCase
     {
         $message = $this->message(self::FAIL);
 
-        self::assertFalse($this->file($message));
+        self::assertSame(CategoryFiling::SenderNotVerified, $this->file($message));
 
         self::assertNull($message->ruleCategory, 'a message that FAILED authentication was filed under a reader-made category');
         self::assertNull($message->thread?->userCategory);
@@ -87,7 +88,7 @@ final class RuleCategoryFilerTest extends TestCase
         // reader decided that Unknown is not good enough.
         $message = $this->message(null);
 
-        self::assertFalse($this->file($message));
+        self::assertSame(CategoryFiling::SenderNotVerified, $this->file($message));
 
         self::assertNull($message->ruleCategory);
         self::assertNull($message->thread?->userCategory);
@@ -101,7 +102,7 @@ final class RuleCategoryFilerTest extends TestCase
 
         $message = $this->message(self::PASS);
 
-        self::assertFalse($this->file($message, category: $strangers));
+        self::assertSame(CategoryFiling::NoCategory, $this->file($message, category: $strangers));
 
         self::assertNull($message->ruleCategory, 'a rule filed mail under a category its owner does not own');
     }
@@ -109,11 +110,11 @@ final class RuleCategoryFilerTest extends TestCase
     public function testAnActionWithNoCategoryOrADeletedOneFilesNothing(): void
     {
         $withoutId = $this->message(self::PASS);
-        self::assertFalse($this->file($withoutId, action: ['type' => 'fileInCategory']));
+        self::assertSame(CategoryFiling::NoCategory, $this->file($withoutId, action: ['type' => 'fileInCategory']));
         self::assertNull($withoutId->ruleCategory);
 
         $deleted = $this->message(self::PASS);
-        self::assertFalse($this->file($deleted, category: null));
+        self::assertSame(CategoryFiling::NoCategory, $this->file($deleted, category: null));
         self::assertNull($deleted->ruleCategory);
     }
 
@@ -129,7 +130,7 @@ final class RuleCategoryFilerTest extends TestCase
         $gmail = $this->message(self::PASS);
         $gmail->gmailLabelIds = ['INBOX', 'CATEGORY_PROMOTIONS'];
 
-        self::assertTrue($this->file($gmail), 'a filter was refused on Gmail mail');
+        self::assertSame(CategoryFiling::Filed, $this->file($gmail), 'a filter was refused on Gmail mail');
         self::assertSame($this->shipping, $gmail->ruleCategory);
     }
 
@@ -138,7 +139,7 @@ final class RuleCategoryFilerTest extends TestCase
         $message = $this->message(self::PASS);
         $message->thread->categoryPinnedAt = new \DateTimeImmutable('2026-07-28 12:30:00');
 
-        self::assertTrue($this->file($message));
+        self::assertSame(CategoryFiling::Filed, $this->file($message));
 
         self::assertSame($this->shipping, $message->ruleCategory, 'the verdict is a fact about the message and is recorded');
         self::assertNull($message->thread->userCategory, 'a conversation the reader dragged somewhere was moved by a filter');
@@ -150,7 +151,7 @@ final class RuleCategoryFilerTest extends TestCase
         // Newer than this message, so the thread's tab is decided by that one.
         $message->thread->lastMessageAt = new \DateTimeImmutable('2026-07-28 12:00:00');
 
-        self::assertTrue($this->file($message));
+        self::assertSame(CategoryFiling::Filed, $this->file($message));
 
         self::assertSame($this->shipping, $message->ruleCategory);
         self::assertNull($message->thread->userCategory);
@@ -169,8 +170,8 @@ final class RuleCategoryFilerTest extends TestCase
 
         $message = $this->message(self::PASS);
 
-        self::assertTrue($this->file($message));
-        self::assertTrue($this->file($message, category: $receipts));
+        self::assertSame(CategoryFiling::Filed, $this->file($message));
+        self::assertSame(CategoryFiling::Filed, $this->file($message, category: $receipts));
 
         self::assertSame($receipts, $message->ruleCategory);
         self::assertSame($receipts, $message->thread?->userCategory);
@@ -184,7 +185,7 @@ final class RuleCategoryFilerTest extends TestCase
      *                                           nothing, as after a deletion
      * @param array<string,mixed>|null $action
      */
-    private function file(Message $message, InboxCategory|false|null $category = false, ?array $action = null): bool
+    private function file(Message $message, InboxCategory|false|null $category = false, ?array $action = null): CategoryFiling
     {
         $repository = $this->createStub(InboxCategoryRepository::class);
         $repository->method('find')->willReturn(false === $category ? $this->shipping : $category);

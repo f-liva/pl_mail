@@ -3573,6 +3573,7 @@ settings:
             failed: 'Run ran aground — %count% yarns were done'
             queued: 'Awaitin'' the crew…'
             running: 'Workin''… %count% so far'
+        run_unfiled: '%count% yarn left out o'' the tab: the harbour never vouched for the sender|%count% yarns left out o'' the tab: the harbour never vouched for the sender'
         run_confirm: 'Run "%name%" over the yarns already aboard? It can shift and re-flag a great many at once.'
         saved: Sieve saved.
         spam_rule_name: 'Bilge: %sender%'

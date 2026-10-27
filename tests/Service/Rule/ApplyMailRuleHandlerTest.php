@@ -122,6 +122,7 @@ final class ApplyMailRuleHandlerTest extends KernelTestCase
 
         self::assertSame(RuleRunState::Completed, $rule->runState);
         self::assertSame(7, $rule->runProcessed, 'Every matching message should be counted.');
+        self::assertSame(0, $rule->runUnfiled, 'A rule that files into no tab has nothing to leave unfiled.');
         self::assertNotNull($rule->runStartedAt);
         self::assertNotNull($rule->runFinishedAt);
 

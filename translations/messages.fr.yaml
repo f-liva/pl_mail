@@ -3782,6 +3782,7 @@ settings:
             failed: 'Exécution arrêtée en cours de route — %count% messages traités'
             queued: 'En file…'
             running: 'Application… %count% jusqu’ici'
+        run_unfiled: '%count% non classé dans l’onglet : le serveur de réception n’a pas vérifié l’expéditeur|%count% non classés dans l’onglet : le serveur de réception n’a pas vérifié l’expéditeur'
         run_confirm: 'Appliquer « %name% » au courrier que vous avez déjà ? Cela peut déplacer et réétiqueter beaucoup de messages d’un coup.'
         saved: Filtre enregistré.
         spam_rule_name: 'Spam : %sender%'

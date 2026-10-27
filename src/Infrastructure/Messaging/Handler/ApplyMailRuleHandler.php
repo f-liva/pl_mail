@@ -59,6 +59,7 @@ final readonly class ApplyMailRuleHandler
 
         $rule->runState = RuleRunState::Running;
         $rule->runProcessed = 0;
+        $rule->runUnfiled = 0;
         $rule->runStartedAt = new DateTimeImmutable();
         $rule->runFinishedAt = null;
         $this->em->flush();
@@ -140,7 +141,10 @@ final readonly class ApplyMailRuleHandler
                     continue;
                 }
 
-                $this->executor->execute($rule, $entity);
+                if (true === $this->executor->execute($rule, $entity)) {
+                    $rule->runUnfiled++;
+                }
+
                 $rule->runProcessed++;
             }
 
