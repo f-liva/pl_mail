@@ -2347,6 +2347,56 @@ class MessageRepository extends ServiceEntityRepository
     }
 
     /**
+     * The rows behind a set of JMAP Email ids on one account.
+     *
+     * Scoped to the account and not the user, unlike the Gmail lookups: a
+     * JMAP Email id is the server's name for a message in one mailbox store,
+     * and nothing attributes a JMAP message to a sibling account.
+     *
+     * @param list<string> $jmapIds
+     *
+     * @return list<Message>
+     */
+    public function findByJmapIdsForAccount(Account $account, array $jmapIds): array
+    {
+        if ([] === $jmapIds) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('m')
+            ->where('m.account = :account')
+            ->andWhere('m.jmapId IN (:jmapIds)')
+            ->setParameter('account', $account)
+            ->setParameter('jmapIds', $jmapIds)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Which of these JMAP Email ids the account already has, as ids only:
+     * what a page of a listing asks before it fetches anything.
+     *
+     * @param list<string> $jmapIds
+     *
+     * @return list<string>
+     */
+    public function findStoredJmapIdsForAccount(Account $account, array $jmapIds): array
+    {
+        if ([] === $jmapIds) {
+            return [];
+        }
+
+        return array_map(strval(...), $this->createQueryBuilder('m')
+            ->select('m.jmapId')
+            ->where('m.account = :account')
+            ->andWhere('m.jmapId IN (:jmapIds)')
+            ->setParameter('account', $account)
+            ->setParameter('jmapIds', $jmapIds)
+            ->getQuery()
+            ->getSingleColumnResult());
+    }
+
+    /**
      * The account's own copy of a message (via mailbox or thread ownership)
      * by canonical RFC Message-ID — the enrichment target for Gmailify dedup.
      *

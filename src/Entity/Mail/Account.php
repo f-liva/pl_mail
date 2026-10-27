@@ -543,6 +543,9 @@ class Account extends AccountModel
     /** A JMAP account's sync states, by data type. See jmapState(). */
     public const string SETTING_JMAP_STATES = 'sync.jmap.states';
 
+    /** Where a JMAP account's first import has got to. See $jmapImport. */
+    public const string SETTING_JMAP_IMPORT = 'sync.jmap.import';
+
     /** Unfetched messages the listing under way has found so far. */
     public const string SETTING_BACKFILL_PENDING = 'sync.backfill_pending';
 
@@ -1140,6 +1143,47 @@ class Account extends AccountModel
         $state  = true === is_array($states) ? ($states[$type] ?? null) : null;
 
         return true === is_string($state) && '' !== $state ? $state : null;
+    }
+
+    /**
+     * Where a JMAP account's import of its history has got to, or null when
+     * there is none to do.
+     *
+     * Two phases, Inbox first and then everything, read newest first with
+     * Email/query. `anchor` is the last Email id read, which is what the next
+     * page starts after: an anchor stays put when mail arrives or is deleted
+     * above it, where a position would shift and skip. `position` is kept
+     * beside it for the one case an anchor cannot serve — the Email it names
+     * was destroyed in the meantime — when it is the best guess there is.
+     *
+     * Virtual, out of the settings bag, like $graphImport.
+     *
+     * @var array{phase: string, anchor: string|null, position: int}|null
+     */
+    public ?array $jmapImport {
+        get {
+            $plan = $this->getSetting(self::SETTING_JMAP_IMPORT);
+
+            if (false === is_array($plan) || false === in_array($plan['phase'] ?? null, ['inbox', 'all'], true)) {
+                return null;
+            }
+
+            $anchor = $plan['anchor'] ?? null;
+
+            return [
+                'phase'    => (string) $plan['phase'],
+                'anchor'   => is_string($anchor) && '' !== $anchor ? $anchor : null,
+                'position' => max(0, (int) ($plan['position'] ?? 0)),
+            ];
+        }
+        set (?array $plan) {
+            $this->setSetting(self::SETTING_JMAP_IMPORT, $plan);
+        }
+    }
+
+    public function needsJmapImport(): bool
+    {
+        return null !== $this->jmapImport;
     }
 
     /**

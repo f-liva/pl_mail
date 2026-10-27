@@ -35,6 +35,42 @@ class LabelBindingRepository extends ServiceEntityRepository
         return $this->findOneBy(['graphFolderId' => $graphFolderId, 'account' => $account]);
     }
 
+    public function findOneByJmapMailboxId(string $jmapMailboxId, Account $account): ?LabelBinding
+    {
+        return $this->findOneBy(['jmapMailboxId' => $jmapMailboxId, 'account' => $account]);
+    }
+
+    /**
+     * An account's bindings to remote JMAP mailboxes, keyed by mailbox id.
+     *
+     * Keyed so a sync can resolve every mailbox id an Email names from one
+     * read, rather than one query per id per message. QueryBuilder for the
+     * same reason as findWithGraphFolderIdForAccount(): the filter is a
+     * negated null.
+     *
+     * @return array<string, LabelBinding>
+     */
+    public function findByJmapMailboxIdForAccount(Account $account): array
+    {
+        /** @var list<LabelBinding> $bindings */
+        $bindings = $this->createQueryBuilder('binding')
+            ->addSelect('label')
+            ->innerJoin('binding.label', 'label')
+            ->where('binding.account = :account')
+            ->andWhere('binding.jmapMailboxId IS NOT NULL')
+            ->setParameter('account', $account)
+            ->getQuery()
+            ->getResult();
+
+        $keyed = [];
+
+        foreach ($bindings as $binding) {
+            $keyed[(string) $binding->jmapMailboxId] = $binding;
+        }
+
+        return $keyed;
+    }
+
     /**
      * QueryBuilder for `graphFolderId IS NOT NULL`: findBy() can ask for null,
      * but not for its negation.
