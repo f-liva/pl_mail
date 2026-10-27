@@ -1,4 +1,4 @@
-<!-- translated-from: features/mail.md sha1:6b1364608797d05e4618beebce343408505418a1 -->
+<!-- translated-from: features/mail.md sha1:cb68b1de223066af8afe5e44ab31e64ae2d3b508 -->
 
 # Mail
 
@@ -1075,6 +1075,10 @@ unverändert zurück.
 Feld) und drücke Strg+C. Sie landen als `Name <Adresse>; Adresse` in der Zwischenablage, was andere
 Mailprogramme lesen. Strg+X tut dasselbe und entfernt sie, so wandert eine Liste mit Ausschneiden
 und Einfügen von An nach Bcc.
+
+**Zieh einen Empfänger** von An, Cc oder Bcc auf ein anderes dieser Felder, um ihn dorthin zu
+verschieben; ein Kontakt behält seinen Namen. Mit Maus oder Stift: Auf einem Touchscreen schneidest
+du die Adresse stattdessen aus und fügst sie ein.
 
 Eine Liste von Adressen, die du in **An**, **Cc** oder **Bcc** einfügst, wird zu einem Empfänger
 je Adresse, ob durch Semikolon, Komma, Zeilenumbruch oder Leerzeichen getrennt, mit oder ohne

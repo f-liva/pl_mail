@@ -974,6 +974,9 @@ fixed one where the old one was. Leaving the field without pressing Enter puts i
 and pressing Ctrl+C: they go to the clipboard as `Name <address>; address`, which other mail clients
 read. Ctrl+X does the same and removes them, so a list moves from To to Bcc with a cut and a paste.
 
+**Drag a recipient** from one of To, Cc and Bcc onto another to move it there; a contact keeps its
+name. With a mouse or a pen: on a touch screen, cut and paste the address instead.
+
 A list of addresses pasted into **To**, **Cc** or **Bcc** becomes one recipient per address,
 whether it is separated by semicolons, commas, new lines or spaces, and with or without names
 (`jo@jo.fr; Ann <ann@example.org>`, `jo@jo.fr jo2@jo.fr`). A space inside a name does not split

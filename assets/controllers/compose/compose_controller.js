@@ -313,6 +313,7 @@ export default class extends Controller {
             input.setAttribute('aria-describedby', this._errorsId());
 
             this._tameAddressField(this._tomSelectFor(row.querySelector('.ts-wrapper')), input);
+            this._acceptDraggedChips(this._tomSelectFor(row.querySelector('.ts-wrapper')));
         }
 
         this._markInvalid(this.hasErrorsTarget && false === this.errorsTarget.classList.contains('hidden'));
@@ -675,6 +676,135 @@ export default class extends Controller {
         select.plmailTyped = address;
         select.focus();
         select.control_input.select();
+    }
+
+    /**
+     * Let a chip be dragged out of this field and dropped into another one.
+     *
+     * Moving somebody from To to Bcc meant removing the chip and typing the
+     * address again in the other row. Dragging takes the chip itself: a
+     * suggested contact keeps its contact (and so its name), because the
+     * option travels with it rather than being re-made from the address.
+     * Dropped on a field that already has the address, the chip only leaves
+     * the one it came from.
+     *
+     * Pointer events, not HTML drag and drop. Tom Select cancels `mousedown`
+     * on a chip (to keep focus in the field), and a cancelled mousedown never
+     * starts a native drag: `draggable` chips simply did not move. Mouse and
+     * pen only — on a touch screen a finger landing on a chip has to scroll
+     * the window, and Ctrl+X / Ctrl+V is the way across there.
+     */
+    _acceptDraggedChips(select) {
+        if (null === select || true === select.plmailDraggable) {
+            return;
+        }
+
+        select.plmailDraggable = true;
+
+        select.wrapper.addEventListener('pointerdown', (event) => {
+            const chip = event.target.closest?.('.item');
+
+            if ('touch' === event.pointerType || 0 !== event.button || null === chip || undefined === chip
+                || false === select.control.contains(chip) || null !== event.target.closest('.remove')) {
+                return;
+            }
+
+            this._startChipDrag(select, chip, event);
+        });
+    }
+
+    /** Follow the pointer from a chip until it is released over a field. */
+    _startChipDrag(from, chip, down) {
+        const value  = chip.dataset.value;
+        let ghost    = null;
+        let target   = null;
+
+        const wrapperAt = (x, y) => {
+            const wrapper = document.elementFromPoint(x, y)?.closest('.ts-wrapper') ?? null;
+
+            if (null === wrapper || wrapper === from.wrapper) {
+                return null;
+            }
+
+            const row = this._addressRows().find((candidate) => candidate.contains(wrapper));
+
+            return undefined === row ? null : wrapper;
+        };
+
+        const move = (event) => {
+            if (null === ghost) {
+                // A click is not a drag: it has to go somewhere first.
+                if (Math.hypot(event.clientX - down.clientX, event.clientY - down.clientY) < 6) {
+                    return;
+                }
+
+                // Inside a .ts-control of its own, so the chip's styles —
+                // all scoped under that class — still apply on <body>.
+                ghost = document.createElement('div');
+                ghost.className = 'ts-control ts-drag-ghost';
+                ghost.append(chip.cloneNode(true));
+                document.body.append(ghost);
+                chip.classList.add('ts-dragging');
+            }
+
+            ghost.style.left = `${event.clientX + 8}px`;
+            ghost.style.top  = `${event.clientY + 8}px`;
+
+            const over = wrapperAt(event.clientX, event.clientY);
+
+            if (over !== target) {
+                target?.classList.remove('ts-drop-target');
+                over?.classList.add('ts-drop-target');
+                target = over;
+            }
+        };
+
+        const end = (event) => {
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', end);
+            document.removeEventListener('pointercancel', end);
+
+            ghost?.remove();
+            chip.classList.remove('ts-dragging');
+            target?.classList.remove('ts-drop-target');
+
+            if (null !== ghost && null !== target && 'pointerup' === event.type) {
+                this._moveChip(from, this._tomSelectFor(target), value);
+            }
+        };
+
+        document.addEventListener('pointermove', move);
+        document.addEventListener('pointerup', end);
+        document.addEventListener('pointercancel', end);
+    }
+
+    /** Take the chip `value` out of `from` and put it in `to`, once. */
+    _moveChip(from, to, value) {
+        if (null === to || to === from) {
+            return;
+        }
+
+        const address = this._chipAddress(from, value).toLowerCase();
+        const option  = from.options[value];
+        const present = to.items.some((item) => this._chipAddress(to, item).toLowerCase() === address);
+
+        if (false === present) {
+            // Tom Select's own bookkeeping stays behind: $order and $id
+            // number the options of the field they were made in.
+            if (undefined !== option && undefined === to.options[value]) {
+                const { $order, $id, ...copy } = option;
+
+                to.addOption(copy);
+            }
+
+            if (undefined !== to.options[value]) {
+                to.addItem(value);
+            } else {
+                to.createItem(this._chipAddress(from, value), false);
+            }
+        }
+
+        from.removeItem(value);
     }
 
     /**

@@ -169,6 +169,41 @@ test.describe("compose recipients", () => {
         await expect(chips(page)).toHaveCount(0);
     });
 
+    /**
+     * A chip dragged from To onto Cc moves there: it leaves To, and Cc holds
+     * the same recipient. Pointer events, because Tom Select cancels the
+     * mousedown a native drag would need.
+     */
+    test("a chip dragged from To to Cc moves there", async ({ page }) => {
+        await openCompose(page);
+
+        await addRecipient(page, KNOWN);
+        await addRecipient(page, OTHER);
+
+        await page.locator(DOCK).getByRole("button", { name: /^Cc$/ }).click();
+
+        const cc = page.locator(`${DOCK} .ts-control`).nth(1);
+        const chip = chips(page).filter({ hasText: OTHER });
+        const from = await chip.boundingBox();
+        const to = await cc.boundingBox();
+
+        if (null === from || null === to) {
+            throw new Error("the chip or the Cc field is not on screen");
+        }
+
+        await page.mouse.move(from.x + 8, from.y + from.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 10 });
+        await expect(page.locator(`${DOCK} .ts-wrapper.ts-drop-target`)).toHaveCount(1);
+        await page.mouse.up();
+
+        await expect(chips(page)).toHaveCount(1);
+        await expect(chips(page).first()).toContainText(KNOWN);
+        await expect(cc.locator(".item")).toHaveCount(1);
+        await expect(cc.locator(".item")).toContainText(OTHER);
+        await expect(page.locator(".ts-drag-ghost")).toHaveCount(0);
+    });
+
     /** Cc and Bcc are their own fields, and must not collect the To address. */
     test("Cc and Bcc address separately", async ({ page }) => {
         await openCompose(page);
