@@ -267,6 +267,11 @@ services:
     App\Service\Mail\GmailApiSender:
         tags: [{ name: app.mail_sender, priority: 10 }]
 
+    # Above SMTP, and claiming only JMAP accounts whose server submits mail;
+    # one without submission falls through to SmtpMailSender below.
+    App\Service\Mail\JmapApiSender:
+        tags: [{ name: app.mail_sender, priority: 10 }]
+
     App\Service\Mail\SmtpMailSender:
         tags: [{ name: app.mail_sender, priority: 0 }]
 

@@ -273,7 +273,10 @@ final class JmapClient implements ResetInterface
 
             $status = $response->getStatusCode();
         } catch (HttpClientException $failure) {
-            throw new JmapApiException(sprintf('JMAP server could not be reached: %s', $failure->getMessage()));
+            // Kept as the cause: whether a request left before it failed is
+            // what decides whether a send may have gone through — see
+            // JmapApiSender and SendTransportFailure.
+            throw new JmapApiException(sprintf('JMAP server could not be reached: %s', $failure->getMessage()), 0, null, $failure);
         }
 
         if ($status >= 200 && $status < 300) {

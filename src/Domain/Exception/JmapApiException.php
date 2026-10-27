@@ -25,8 +25,9 @@ class JmapApiException extends \RuntimeException
         string $message,
         private readonly int     $status = 0,
         private readonly ?string $type = null,
+        ?\Throwable              $previous = null,
     ) {
-        parent::__construct($message, $status);
+        parent::__construct($message, $status, $previous);
     }
 
     public function getStatus(): int

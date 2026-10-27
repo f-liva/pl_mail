@@ -51,10 +51,25 @@ final class FakeJmapServer
     /** @var list<string> every blob downloaded */
     public array $downloads = [];
 
+    /** @var array<string, string> blob id => bytes uploaded */
+    public array $uploads = [];
+
+    /** @var list<array{identityId: string, emailId: string}> every submission accepted */
+    public array $submissions = [];
+
+    /** @var array<string, array{id: string, email: string, name: string}> */
+    public array $identities = ['id-1' => ['id' => 'id-1', 'email' => 'me@example.test', 'name' => 'Me']];
+
+    /** A SetError type EmailSubmission/set answers with, or null to accept. */
+    public ?string $refuseSubmission = null;
+
     /** @var list<string> capabilities the session declares, beyond core */
     public array $capabilities = [JmapCapability::MAIL, JmapCapability::SUBMISSION];
 
     private int $sequence = 0;
+
+    /** @var array<string, string> creation id => object id, for `#ref` within one request */
+    private array $created = [];
 
     public function __construct()
     {
@@ -181,9 +196,17 @@ final class FakeJmapServer
             return new MockResponse('', ['http_code' => 404]);
         }
 
+        if ('POST' === $method && true === str_starts_with($path, '/upload/')) {
+            $blobId                 = 'up-' . (++$this->sequence);
+            $this->uploads[$blobId] = (string) ($options['body'] ?? '');
+
+            return $this->json(['accountId' => self::ACCOUNT, 'blobId' => $blobId, 'type' => 'message/rfc822', 'size' => strlen($this->uploads[$blobId])]);
+        }
+
         if ('POST' === $method && '/api/' === $path) {
-            $request   = json_decode((string) ($options['body'] ?? '{}'), true);
-            $responses = [];
+            $request       = json_decode((string) ($options['body'] ?? '{}'), true);
+            $responses     = [];
+            $this->created = [];
 
             foreach ($request['methodCalls'] ?? [] as [$name, $arguments, $callId]) {
                 $this->calls[] = [$name, $arguments];
@@ -214,6 +237,9 @@ final class FakeJmapServer
             'Email/query'     => [$this->query($arguments)],
             'Email/set'       => [[$name, $this->setEmails($arguments)]],
             'Mailbox/set'     => [[$name, $this->setMailboxes($arguments)]],
+            'Identity/get'    => [[$name, ['accountId' => self::ACCOUNT, 'state' => '1', 'list' => array_values($this->identities), 'notFound' => []]]],
+            'Email/import'    => [[$name, $this->import($arguments)]],
+            'EmailSubmission/set' => $this->submit($arguments),
             default           => [['error', ['type' => 'unknownMethod']]],
         };
     }
@@ -386,6 +412,91 @@ final class FakeJmapServer
             'destroyed'  => $destroyed,
             'notUpdated' => [] === $notUpdated ? null : $notUpdated,
         ];
+    }
+
+    /**
+     * Email/import of an uploaded blob into the given mailboxes.
+     *
+     * @param array<string, mixed> $arguments
+     *
+     * @return array<string, mixed>
+     */
+    private function import(array $arguments): array
+    {
+        $created = [];
+
+        foreach ($arguments['emails'] ?? [] as $key => $email) {
+            $raw = $this->uploads[$email['blobId']] ?? null;
+
+            if (null === $raw) {
+                $notCreated[$key] = ['type' => 'blobNotFound'];
+
+                continue;
+            }
+
+            $id = 'e' . (++$this->sequence);
+
+            $this->emails[$id] = [
+                'id'         => $id,
+                'blobId'     => 'blob-' . $id,
+                'threadId'   => 't-' . $id,
+                'mailboxIds' => $email['mailboxIds'],
+                'keywords'   => $email['keywords'] ?? [],
+                'receivedAt' => '2026-10-27T12:00:00Z',
+                'raw'        => $raw,
+            ];
+
+            $this->changed('Email', 'created', $id);
+            $this->created['#' . $key] = $id;
+            $created[$key]             = ['id' => $id, 'blobId' => 'blob-' . $id, 'threadId' => 't-' . $id];
+        }
+
+        return ['accountId' => self::ACCOUNT, 'created' => $created, 'notCreated' => $notCreated ?? null];
+    }
+
+    /**
+     * EmailSubmission/set create, with onSuccessUpdateEmail applied as an
+     * implicit Email/set answered under the same call id — as RFC 8621 §7.5
+     * has a server do.
+     *
+     * @param array<string, mixed> $arguments
+     *
+     * @return list<array{0: string, 1: array<string, mixed>}>
+     */
+    private function submit(array $arguments): array
+    {
+        $created    = [];
+        $notCreated = [];
+        $updates    = [];
+
+        foreach ($arguments['create'] ?? [] as $key => $submission) {
+            $emailId = $this->created[$submission['emailId']] ?? $submission['emailId'];
+
+            if (null !== $this->refuseSubmission || false === isset($this->emails[$emailId])) {
+                $notCreated[$key] = ['type' => $this->refuseSubmission ?? 'invalidEmail'];
+
+                continue;
+            }
+
+            $this->submissions[] = ['identityId' => (string) $submission['identityId'], 'emailId' => $emailId];
+            $created[$key]       = ['id' => 'sub-' . (++$this->sequence)];
+
+            if (true === isset($arguments['onSuccessUpdateEmail']['#' . $key])) {
+                $updates[$emailId] = $arguments['onSuccessUpdateEmail']['#' . $key];
+            }
+        }
+
+        $answers = [['EmailSubmission/set', [
+            'accountId'  => self::ACCOUNT,
+            'created'    => [] === $created ? null : $created,
+            'notCreated' => [] === $notCreated ? null : $notCreated,
+        ]]];
+
+        if ([] !== $updates) {
+            $answers[] = ['Email/set', $this->setEmails(['update' => $updates])];
+        }
+
+        return $answers;
     }
 
     /**
