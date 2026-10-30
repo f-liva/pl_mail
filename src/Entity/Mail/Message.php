@@ -313,7 +313,7 @@ class Message extends MessageModel
     /**
      * @var Collection<int, MessagePart>
      */
-    #[ORM\OneToMany(targetEntity: MessagePart::class, mappedBy: 'message')]
+    #[ORM\OneToMany(targetEntity: MessagePart::class, mappedBy: 'message', cascade: ['persist'])]
     public private(set) Collection $messageParts;
 
     #[ORM\ManyToOne(inversedBy: 'messages')]
