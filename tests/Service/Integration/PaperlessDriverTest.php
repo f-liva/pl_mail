@@ -509,6 +509,52 @@ final class PaperlessDriverTest extends TestCase
         self::assertNull($this->driver([])->shareLink($this->integration(), '91'));
     }
 
+    // ── Timeouts ──────────────────────────────────────────────────────────────
+
+    /**
+     * A Paperless instance is on the user's own network and can stop answering
+     * without closing the connection. Left to itself the request then waits for
+     * default_socket_timeout, outlives max_execution_time, and dies on a fatal
+     * raised inside curl — which does not unwind through request()'s catch, so
+     * the picker never gets its IntegrationException and the worker thread goes
+     * down with the request. The timeout is what keeps that a caught error.
+     */
+    public function testEveryRequestCarriesAnIdleTimeout(): void
+    {
+        $driver = $this->driver([
+            new JsonMockResponse(['results' => []]),
+            new JsonMockResponse(['count' => 0, 'next' => null, 'results' => []]),
+        ]);
+
+        $driver->list($this->integration());
+
+        foreach ($this->requests as $request) {
+            self::assertSame(10.0, $request['options']['timeout'] ?? null);
+        }
+        self::assertNotEmpty($this->requests);
+    }
+
+    /**
+     * An upload moves a whole mail attachment, so no whole-transfer ceiling is
+     * imposed and a caller that needs a different idle wait sets its own.
+     */
+    public function testNoWholeTransferCeilingIsImposed(): void
+    {
+        $path = $this->scratchFile('%PDF-1.4 scan-bytes');
+
+        try {
+            $driver = $this->driver([new MockResponse('"3f2a1b8c-0000-4000-8000-000000000004"')]);
+
+            $driver->upload($this->integration(), $path, 'bill.pdf', 'application/pdf');
+
+            self::assertSame(10.0, $this->requests[0]['options']['timeout']);
+            // 0 is the client's own "no ceiling", which is what an upload wants.
+            self::assertSame(0, $this->requests[0]['options']['max_duration']);
+        } finally {
+            unlink($path);
+        }
+    }
+
     // ── Fixtures ──────────────────────────────────────────────────────────────
 
     private function scratchFile(string $contents): string

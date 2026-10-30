@@ -40,6 +40,8 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 final readonly class NextcloudDriver implements IntegrationDriverInterface, SearchableDriverInterface, DestinationDriverInterface
 {
+    use HttpTimeoutDefaults;
+
     /**
      * Where Nextcloud serves WebDAV, CalDAV and CardDAV alike, under the base
      * address. Public because CalDavDiscovery starts a Nextcloud connection's
@@ -586,7 +588,7 @@ final readonly class NextcloudDriver implements IntegrationDriverInterface, Sear
         $options['auth_basic'] = [$integration->username, $integration->secret];
 
         try {
-            $response = $this->httpClient->request($method, $url, $options);
+            $response = $this->httpClient->request($method, $url, $this->withTimeoutDefaults($options));
 
             if (true === $throwOnError) {
                 $status = $response->getStatusCode();

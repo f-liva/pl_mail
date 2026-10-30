@@ -65,6 +65,8 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 final readonly class PaperlessDriver implements IntegrationDriverInterface, SearchableDriverInterface, DestinationDriverInterface, OriginalFileDriverInterface
 {
+    use HttpTimeoutDefaults;
+
     private const string API = '/api';
 
     /**
@@ -783,7 +785,7 @@ final readonly class PaperlessDriver implements IntegrationDriverInterface, Sear
         );
 
         try {
-            $response = $this->httpClient->request($method, $url, $options);
+            $response = $this->httpClient->request($method, $url, $this->withTimeoutDefaults($options));
 
             if (true === $throwOnError) {
                 $status = $response->getStatusCode();

@@ -29,6 +29,8 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 abstract class AbstractOAuthDriver implements IntegrationDriverInterface
 {
+    use HttpTimeoutDefaults;
+
     public function __construct(
         protected readonly HttpClientInterface     $httpClient,
         protected readonly IntegrationTokenManager $tokens,
@@ -65,7 +67,7 @@ abstract class AbstractOAuthDriver implements IntegrationDriverInterface
         $options['auth_bearer'] = $this->tokens->getValidAccessToken($integration);
 
         try {
-            $response = $this->httpClient->request($method, $url, $options);
+            $response = $this->httpClient->request($method, $url, $this->withTimeoutDefaults($options));
 
             if (true === $throwOnError) {
                 $status = $response->getStatusCode();

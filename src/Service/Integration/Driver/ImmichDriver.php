@@ -55,6 +55,8 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 final readonly class ImmichDriver implements IntegrationDriverInterface, SearchableDriverInterface, TimelineDriverInterface, DestinationDriverInterface
 {
+    use HttpTimeoutDefaults;
+
     private const string API = '/api';
 
     /**
@@ -851,7 +853,7 @@ final readonly class ImmichDriver implements IntegrationDriverInterface, Searcha
         );
 
         try {
-            $response = $this->httpClient->request($method, $url, $options);
+            $response = $this->httpClient->request($method, $url, $this->withTimeoutDefaults($options));
 
             if (true === $throwOnError) {
                 $status = $response->getStatusCode();
